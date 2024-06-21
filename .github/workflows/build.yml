@@ -29,7 +29,7 @@ on:
       DOCKER_CMAKE_VERSION:
         description: Compiler Container CMake Version
         required: true
-        default: 3.24.2
+        default: 3.29.6
         
       SOURCE_CODE_URL:
         description: Source Repo URL
