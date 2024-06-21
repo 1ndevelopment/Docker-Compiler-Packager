@@ -67,12 +67,12 @@ jobs:
         echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
         echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
         
-    - name: Create a timestamp & set the repo's working directory
+    - name: Create timestamps & set the repo's working directory
       run: |
-        ## Create a Timestamp with the WORK_WEEK & COMMIT_HASH variables
+        ## Create a TIMESTAMP with the WORK_WEEK & COMMIT_HASH variables
         echo "TIMESTAMP=$(echo _${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }})" >> $GITHUB_ENV
 
-        ## Attach the TIMESTAMP variable to the Source Code's Repo Name
+        ## Attach the TIMESTAMP variable to the Source Code's REPO_NAME
         ## example: c-example-main_06-21-24_ww25.5_13:56:38_59726b5
         echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}${{ env.TIMESTAMP }})" >> $GITHUB_ENV
 
@@ -96,6 +96,8 @@ jobs:
         docker images
 
     - name: Push cmake.${{ env.CMAKE_VERSION }} image to Artifactory
+      run: |
+        echo ""
 
     - name: Compile Source Code with cmake.${{ env.CMAKE_VERSION }} container
       run: |
