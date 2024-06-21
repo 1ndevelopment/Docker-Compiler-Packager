@@ -1,4 +1,4 @@
-name: Build & Package using Docker example
+name: Build, Compile & Package
 
 on:
   workflow_dispatch:
