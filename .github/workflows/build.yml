@@ -38,17 +38,20 @@ jobs:
         echo "TIMEZONE=$(date "+%Z")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
         echo "SOURCE_CODE_REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
-        echo "REPO_NAME=$(awk -F'/' '{ print $5 }' <<< ${{ github.event.inputs.SOURCE_CODE_REPO_URL }})" >> $GITHUB_ENV
+        echo "REPO_NAME=$(awk -F'/' '{ print $5 }' <<< ${{ env.SOURCE_CODE_REPO_URL }})" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
         echo "REPO_NAME_TIMESTAMP=$(awk '{ print $0 "_" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }' <<< ${{ env.REPO_NAME }})" >> $GITHUB_ENV
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
 
-    - name: Display Run Parameters
+    - name: Display Environment  Parameters
       run: |
         echo ""
-        echo "Source Code Repo Name: ${{ env.SOURCE_CODE_REPO_NAME }}"
-        echo "Source Code Repo URL: ${{ github.event.inputs.SOURCE_CODE_URL }}"
-        echo "Source Code Repo Branch: ${{ github.event.inputs.SOURCE_CODE_BRANCH }}"
+        echo "${{ env.WORK_WEEK }}_${{ env.TIMEZONE }}"
+        echo ""
+        echo "Repo Name: ${{ env.REPO_NAME }}"
+        echo "Repo Branch: ${{ env.REPO_BRANCH }}"
+        echo "Repo URL: ${{ env.SOURCE_CODE_URL }}"
+        echo "Hash: ${{ env.COMMIT_HASH }}"
         echo ""
         echo "Additional Make Flags: \n${{ inputs.MAKE_FLAGS }}"
         echo ""
