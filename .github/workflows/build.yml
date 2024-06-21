@@ -56,6 +56,7 @@ jobs:
         echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
         echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
+
         ## Set docker container variables
         echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }]" >> $GITHUB_ENV
         echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
@@ -64,10 +65,12 @@ jobs:
         
     - name: Create a timestamp & set the repo's working directory
       run: |
-        ## Attach a Timestamp to the Source Code Repo Name (example: c-example-main_13:56:38_06-21-24_ww25.5_59726b5 )
+        ## Attach a Timestamp to the Source Code's Repo Name (example: c-example-main_13:56:38_06-21-24_ww25.5_59726b5 )
         echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $1 "-" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
+
         ## Source Code Repo Directory
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
+
         ## Source Code Checkout (example: 1ndev-ui/c-example )
         echo "CHECKOUT_REPO=$(echo ${{ env.REPO_URL }} | awk -F 'https://github.com/' '{gsub(/\/$/, "", $2); print $2}')" >> $GITHUB_ENV
     
@@ -84,7 +87,7 @@ jobs:
 
     - name: Generate CMake docker image
       run: |
-        docker build -t ${{ github.actor }}/${{ env.REPO_NAME_TIMESTAMP }} --build-arg CMAKE_VERSION=${{ env.CMAKE_VERSION }} JOBS=8 .
+        docker build -t ${{ github.actor }}/${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.COMMIT_HASH }} --build-arg CMAKE_VERSION=${{ env.CMAKE_VERSION }} JOBS=8 .
       working-directory: ${{ github.workspace }}
 
     - name: Upload compiled build as an artifact
