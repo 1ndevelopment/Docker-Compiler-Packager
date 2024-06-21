@@ -46,26 +46,6 @@ jobs:
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
         echo "CHECKOUT_REPO=$(echo ${{ env.REPO_URL }} | awk -F 'https://github.com/' '{gsub(/\/$/, "", $2); print $2}')" >> $GITHUB_ENV
 
-    - name: Display Environment Parameters
-      run: |
-        echo ""
-        echo "${{ env.WORK_WEEK }}"
-        echo ""
-        echo "Repo Name: ${{ env.REPO_NAME }}"
-        echo "Repo Branch: ${{ env.REPO_BRANCH }}"
-        echo "Repo URL: ${{ env.REPO_URL }}"
-        echo "Hash: ${{ env.COMMIT_HASH }}"
-        echo ""
-        echo "Timestamp:"
-        echo "${{ env.REPO_NAME_TIMESTAMP }}"
-        echo ""
-        echo "Workspace Directory:"
-        echo "${{ env.REPO_PWD }}"
-        echo ""
-        echo "Additional Make Flags:"
-        echo "${{ inputs.MAKE_FLAGS }}"
-        echo ""
-
     - name: Self Checkout
       uses: actions/checkout@v4
 
@@ -76,6 +56,10 @@ jobs:
         ref: ${{ env.REPO_BRANCH }}
         path: ${{ env.REPO_PWD }}
         token: ${{ secrets.GITHUB_TOKEN }}
+
+    # Cleanup The Actions Workspace Using Custom Composite Run Actions
+    - name: Cleanup
+      uses: rokibhasansagar/slimhub_actions@main
 
     - name: Prepare the environment
       run: |
@@ -90,12 +74,6 @@ jobs:
         docker ps
         echo ""
       working-directory: ${{ env.REPO_PWD }}
-
-#    - name: Clone source code
-#      run: |
-#        git clone ${{ inputs.SOURCE_CODE_URL }} -b ${{ inputs.SOURCE_CODE_BRANCH }} ./${{ env.SOURCE_CODE_REPO_NAME }}
-
-
 
     - name: Upload compiled build as an artifact
       uses: actions/upload-artifact@v4
