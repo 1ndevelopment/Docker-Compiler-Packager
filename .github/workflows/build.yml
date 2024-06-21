@@ -1,0 +1,99 @@
+name: Build & Package using Docker example
+
+on:
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+  workflow_dispatch:
+    inputs:
+      DOCKER_OS_IMAGE:
+        description: Docker OS Image
+        required: true
+        type: choice
+        options:
+        - debian
+        - fedora
+        - arch
+        default: debian
+      SOURCE_CODE_URL:
+        description: Source Code Repo URL
+        required: true
+        default: https://github.com/1ndev-ui/TWRP_CG65_device_tree/
+      SOURCE_CODE_BRANCH:
+        description: Source Code Repo Branch
+        required: true
+        default: main
+      MAKE_FLAGS:
+        description: (optional) Add additional make flags
+        required: false
+        type: string
+
+env:
+  REPO_DIR: ${{ github.workspace }}/${{ env.SOURCE_CODE_REPO_NAME }}
+  WORK_WEEK: $(date "+%yWW%W.%u")
+  RUNNER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  COMMIT_HASH: ${{ github.sha::6 }}
+  TIMEZONE: $(date "+%Z")
+  SOURCE_CODE_REPO_NAME: $(awk -F'/' '{ print $5 }' <<< ${{ inputs.SOURCE_CODE_BRANCH }})
+  REPO_NAME_TIMESTAMP: $(awk -F'/' '{ print $5 "_" ENVIRON["SOURCE_CODE_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }' <<< ${{ inputs.SOURCE_CODE_URL }})
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Display Run Parameters
+      run: |
+        echo ""
+        echo "Source Code Repo Name: ${{ env.SOURCE_CODE_REPO_NAME }}"
+        echo "Source Code Repo URL: ${{ inputs.SOURCE_CODE_URL }}"
+        echo "Source Code Repo Branch: ${{ inputs.SOURCE_CODE_BRANCH }}"
+        echo ""
+        echo "Additional Make Flags: \n${{ inputs.MAKE_FLAGS }}"
+        echo ""
+
+    - name: Self Checkout
+      uses: actions/checkout@v4
+
+    - name: Checkout Source Repo
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.SOURCE_CODE_URL }}
+        ref: ${{ inputs.SOURCE_CODE_BRANCH }}
+        path: ${{ env.REPO_PWD }}
+        token: ${{ env.RUNNER_TOKEN }}
+
+    - name: Prepare the environment
+      run: |
+        sudo apt update -y && sudo apt upgrade -y
+        sudo apt install git docker.io
+
+    - name: Initalize Docker Environment
+      run: |
+        echo ""
+        docker images
+        echo ""
+        docker ps
+        echo ""
+      working-directory: ${{ env.REPO_PWD }}
+
+#    - name: Clone source code
+#      run: |
+#        git clone ${{ inputs.SOURCE_CODE_URL }} -b ${{ inputs.SOURCE_CODE_BRANCH }} ./${{ env.SOURCE_CODE_REPO_NAME }}
+
+
+
+    - name: Upload compiled build as an artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.REPO_NAME_TIMESTAMP }}
+        path: ${{ env.REPO_PWD }}/build/*
+
+    - name: Clean Up
+      if: always()
+      run:  |
+        cd ${{ github.workspace }}
+        sudo rm -r *
+        df -h
+        ls -h
