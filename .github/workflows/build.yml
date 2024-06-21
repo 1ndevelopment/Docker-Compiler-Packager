@@ -31,7 +31,7 @@ on:
 env:
   WORK_WEEK: $(date "+%yWW%W.%u")
   RUNNER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  COMMIT_HASH: ${{ github.sha::6 }}
+  COMMIT_HASH: $(echo "${{ github.sha }}" | cut -c1-7)
   TIMEZONE: $(date "+%Z")
   SOURCE_CODE_REPO_NAME: $(awk -F'/' '{ print $5 }' <<< ${{ inputs.SOURCE_CODE_BRANCH }})
   REPO_NAME_TIMESTAMP: $(awk -F'/' '{ print $5 "_" ENVIRON["SOURCE_CODE_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }' <<< ${{ inputs.SOURCE_CODE_URL }})
