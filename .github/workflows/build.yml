@@ -1,12 +1,10 @@
 name: Build & Package using Docker example
 
 on:
-  workflow_call:
+  workflow_dispatch:
     secrets:
       GITHUB_TOKEN:
         required: true
-
-  workflow_dispatch:
     inputs:
       DOCKER_OS_IMAGE:
         description: Docker OS Image
