@@ -1,15 +1,13 @@
-/bash
-
-# Please remove the existing cmake package before running this script
+#!/usr/bin/env bash
 
 cmake_version="$1"
 jobs="$2"
-if [ -z "$cmake_version" ]
-then
+
+if [ -z "$cmake_version" ]; then
       cmake_version=$(curl -s 'https://cmake.org/files/LatestRelease/cmake-latest-files-v1.json' | jq -r '.version.string')
 fi
-if [ -z "$jobs" ]
-then
+
+if [ -z "$jobs" ]; then
       jobs=$(nproc)
 fi
 
