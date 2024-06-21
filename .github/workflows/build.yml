@@ -40,10 +40,12 @@ jobs:
         echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
         echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
-        echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
 
-    - name: Create Timestap
-      run: echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $1 "_" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
+    - name: Create Timestap & Set Working Directory
+      run: |
+        echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $1 "-" ENVIRON["REPO_BRANCH"] "-" ENVIRON["WORK_WEEK"] "." ENVIRON["TIMEZONE"] "-" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
+        echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
+        echo "CHECKOUT_REPO=$(echo ${{ env.REPO_URL }} | awk -F 'https://github.com/' '{gsub(/\/$/, "", $2); print $2}')" >> $GITHUB_ENV
 
     - name: Display Environment Parameters
       run: |
@@ -71,10 +73,10 @@ jobs:
     - name: Checkout Source Repo
       uses: actions/checkout@v4
       with:
-        repository: ${{ github.event.inputs.SOURCE_CODE_URL }}
-        ref: ${{ github.event.inputs.SOURCE_CODE_BRANCH }}
+        repository: ${{ env.CHECKOUT_REPO }}
+        ref: ${{ env.REPO_BRANCH }}
         path: ${{ env.REPO_PWD }}
-        token: ${{ env.RUNNER_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Prepare the environment
       run: |
