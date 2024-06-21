@@ -28,19 +28,20 @@ on:
         required: false
         type: string
 
-env:
-  WORK_WEEK: $(date "+%yWW%W.%u")
-  RUNNER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  COMMIT_HASH: $(echo "${{ github.sha }}" | cut -c1-7)
-  TIMEZONE: $(date "+%Z")
-  SOURCE_CODE_REPO_NAME: $(awk -F'/' '{ print $5 }' <<< ${{ inputs.SOURCE_CODE_BRANCH }})
-  REPO_NAME_TIMESTAMP: $(awk -F'/' '{ print $5 "_" ENVIRON["SOURCE_CODE_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }' <<< ${{ inputs.SOURCE_CODE_URL }})
-  REPO_DIR: ${{ github.workspace }}/${{ env.SOURCE_CODE_REPO_NAME }}
-
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
+    - name: Set Environment Variables
+      run: |
+        echo "WORK_WEEK=$(date "+%yWW%W.%u")" >> $GITHUB_ENV
+        echo "TIMEZONE=$(date "+%Z")" >> $GITHUB_ENV
+        echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
+        echo "REPO_NAME=$(awk -F'/' '{ print $5 }' <<< ${{ inputs.SOURCE_CODE_REPO_URL }})" >> $GITHUB_ENV
+        echo "REPO_BRANCH=${{ inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
+        echo "REPO_NAME_TIMESTAMP=$(awk '{ print $0 "_" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }' <<< ${{ env.REPO_NAME }})" >> $GITHUB_ENV
+        echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
+
     - name: Display Run Parameters
       run: |
         echo ""
