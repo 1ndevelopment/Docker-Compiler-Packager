@@ -32,7 +32,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - name: Set Environment Variables
+    - name: Set environment variables
       run: |
         echo "WORK_WEEK=$(date "+%m-%d_%H:%M:%S_%yWW%W.%u")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
@@ -40,7 +40,7 @@ jobs:
         echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
 
-    - name: Create Timestap & Set Working Directory
+    - name: Create a timestap & set the repo's working directory
       run: |
         echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $1 "-" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
@@ -57,23 +57,14 @@ jobs:
         path: ${{ env.REPO_PWD }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    # Cleanup The Actions Workspace Using Custom Composite Run Actions
-    - name: Cleanup
-      uses: rokibhasansagar/slimhub_actions@main
-
-    - name: Prepare the environment
+    - name: Containerize gcc + clang & run
       run: |
-        sudo apt update -y && sudo apt upgrade -y
-        sudo apt install git docker
-
-    - name: Initalize Docker Environment
-      run: |
-        echo ""
-        docker images
-        echo ""
-        docker ps
-        echo ""
-      working-directory: ${{ env.REPO_PWD }}
+        # gcc
+        docker build --build-arg USER_ID=`id -u` --build-arg GROUP_ID=`id -g` -t build_gcc.14.1 -f dockerfiles/Dockerfile_GCC_14_1 .
+        # clang
+        docker build --build-arg USER_ID=`id -u` --build-arg GROUP_ID=`id -g` -t build_clang.19 -f dockerfiles/Dockerfile_CLang_19 .
+        # run container
+        docker run -it --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} build_gcc.14.1
 
     - name: Upload compiled build as an artifact
       uses: actions/upload-artifact@v4
