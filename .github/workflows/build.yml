@@ -66,7 +66,8 @@ jobs:
     - name: Create a timestamp & set the repo's working directory
       run: |
         ## Attach a Timestamp to the Source Code's Repo Name (example: c-example-main_13:56:38_06-21-24_ww25.5_59726b5 )
-        echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $1 "-" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
+        echo "TIMESTAMP=$(echo _${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }})" >> $GITHUB_ENV
+        echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}${{ env.TIMESTAMP }})" >> $GITHUB_ENV
 
         ## Source Code Repo Directory
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
@@ -88,12 +89,18 @@ jobs:
     - name: Generate CMake docker image
       run: |
         docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" -t cmake.${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
+        docker images
+
+    - name: Compile Source Code with cmake.${{ env.CMAKE_VERSION }} docker image
+      run: |
+        docker ps
+        docker run -it --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake.${{ env.CMAKE_VERSION }}
 
     - name: Upload compiled build as an artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.REPO_NAME_TIMESTAMP }}
-        path: ${{ env.REPO_PWD }}build/*
+        path: ${{ env.REPO_PWD }}/build/*
 
     - name: Clean Up
       if: always()

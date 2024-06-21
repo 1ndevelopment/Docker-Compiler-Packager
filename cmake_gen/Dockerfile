@@ -17,6 +17,6 @@ RUN apt update && apt install -y \
 
 WORKDIR /cmake
 
-COPY get_cmake.sh /opt/scripts/get_cmake.sh
-RUN chmod +x /opt/scripts/get_cmake.sh
-RUN /opt/scripts/get_cmake.sh $CMAKE_VERSION $JOBS
+COPY get_cmake.sh /usr/local/share/get_cmake.sh
+RUN chmod +x /usr/local/share/get_cmake.sh
+RUN /usr/local/share/get_cmake.sh $CMAKE_VERSION $JOBS
