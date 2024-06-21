@@ -37,7 +37,7 @@ jobs:
         echo "WORK_WEEK=$(date "+%yWW%W.%u")" >> $GITHUB_ENV
         echo "TIMEZONE=$(date "+%Z")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
-        echo "SOURCE_CODE_REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
+        echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
         echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
         echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $0 "_" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
@@ -46,14 +46,15 @@ jobs:
     - name: Display Environment  Parameters
       run: |
         echo ""
-        echo "${{ env.WORK_WEEK }}_${{ env.TIMEZONE }}"
+        echo "${{ env.WORK_WEEK }} ${{ env.TIMEZONE }}"
         echo ""
         echo "Repo Name: ${{ env.REPO_NAME }}"
         echo "Repo Branch: ${{ env.REPO_BRANCH }}"
-        echo "Repo URL: ${{ env.SOURCE_CODE_URL }}"
+        echo "Repo URL: ${{ env.REPO_URL }}"
         echo "Hash: ${{ env.COMMIT_HASH }}"
         echo ""
-        echo "Additional Make Flags: \n${{ inputs.MAKE_FLAGS }}"
+        echo "Additional Make Flags:"
+        echo "${{ inputs.MAKE_FLAGS }}"
         echo ""
 
     - name: Self Checkout
