@@ -11,10 +11,23 @@ on:
         required: true
         type: choice
         options:
-        - debian
+        - ubuntu
         - fedora
         - arch
-        default: debian
+        default: ubuntu
+      DOCKER_IMG_NAME:
+        description: Name of Compiler Container
+        required: true
+        type: string
+        default: cmake_compiler
+      DOCKER_TAG:
+        description:
+        required: true
+        type: string
+      DOCKER_CMAKE_VERSION:
+        description: Compiler Container CMake Version
+        required: true
+        default: 3.24.2
       SOURCE_CODE_URL:
         description: Source Code Repo URL
         required: true
@@ -24,7 +37,7 @@ on:
         required: true
         default: main
       MAKE_FLAGS:
-        description: (optional) Add additional make flags
+        description: Add additional make flags (Optional)
         required: false
         type: string
 
@@ -36,11 +49,16 @@ jobs:
       run: |
         echo "WORK_WEEK=$(date "+%m-%d_%H:%M:%S_%yWW%W.%u")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
+
         echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
         echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
 
-    - name: Create a timestap & set the repo's working directory
+        echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
+        echo "DOCKER_TAG=${{ }}" >> $GITHUB_ENV
+        echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
+
+    - name: Create a timestamp & set the repo's working directory
       run: |
         echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }} | awk '{ print $1 "-" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
@@ -48,6 +66,7 @@ jobs:
 
     - name: Self Checkout
       uses: actions/checkout@v4
+        path: ${{ github.workspace }}
 
     - name: Checkout Source Repo
       uses: actions/checkout@v4
@@ -57,14 +76,11 @@ jobs:
         path: ${{ env.REPO_PWD }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Containerize gcc + clang & run
+    - name: Generate CMake docker image
       run: |
-        # gcc
-        docker build --build-arg USER_ID=`id -u` --build-arg GROUP_ID=`id -g` -t build_gcc.14.1 -f dockerfiles/Dockerfile_GCC_14_1 .
-        # clang
-        docker build --build-arg USER_ID=`id -u` --build-arg GROUP_ID=`id -g` -t build_clang.19 -f dockerfiles/Dockerfile_CLang_19 .
-        # run container
-        docker run -it --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} build_gcc.14.1
+        # cmake
+        docker build -t ${{ github.actor }}/${{ env.DOCKER_IMG_NAME }} --build-arg CMAKE_VERSION=${{ env.CMAKE_VERSION }} JOBS=8 .
+      working-directory: ${{ github.workspace }}
 
     - name: Upload compiled build as an artifact
       uses: actions/upload-artifact@v4
