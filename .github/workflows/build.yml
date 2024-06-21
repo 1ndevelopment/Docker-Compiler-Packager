@@ -38,7 +38,7 @@ jobs:
         echo "TIMEZONE=$(date "+%Z")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
         echo "SOURCE_CODE_REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
-        echo "REPO_NAME=$(echo $SOURCE_CODE_REPO_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
+        echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
         echo "REPO_NAME_TIMESTAMP=$(echo "${{ env.REPO_NAME }}" | awk '{ print $0 "_" ENVIRON["REPO_BRANCH"] "_" ENVIRON["WORK_WEEK"] "_" ENVIRON["TIMEZONE"] "_" ENVIRON["COMMIT_HASH"] }')" >> $GITHUB_ENV
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
