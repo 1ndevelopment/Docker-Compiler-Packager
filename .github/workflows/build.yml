@@ -87,7 +87,7 @@ jobs:
 
     - name: Generate CMake docker image
       run: |
-        docker build -t ${{ env.REPO_NAME_TIMESTAMP }} --build-arg CMAKE_VERSION=${{ env.CMAKE_VERSION }} JOBS=8 "./cmake_gen/Dockerfile"
+        docker build -t ${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}:${{ env.COMMIT_HASH }} --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" JOBS="8" "./cmake_gen/Dockerfile"
       working-directory: ${{ github.workspace }}
 
     - name: Upload compiled build as an artifact
