@@ -99,9 +99,9 @@ jobs:
       run: |
         echo ""
 
-    - name: Compile Source Code in cmake:${{ env.CMAKE_VERSION }} container
+    - name: Compile Source Code using the cmake:${{ env.CMAKE_VERSION }} container
       run: |
-        docker run --name cmake.${{ env.CMAKE_VERSION }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/root/${{ env.REPO_NAME_TIMESTAMP }} -d cmake:${{ env.CMAKE_VERSION }}
+        docker run --name ${{ env.DOCKER_IMG_NAME }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/root/${{ env.REPO_NAME_TIMESTAMP }} -d cmake:${{ env.CMAKE_VERSION }}
         docker ps
 
     - name: Upload compiled build as an artifact
@@ -113,10 +113,10 @@ jobs:
     - name: Clean Up
       if: always()
       run:  |
+        docker stop ${{ env.DOCKER_IMG_NAME }}
+        docker rm ${{ env.DOCKER_IMG_NAME }}
+        docker rmi cmake:${{ env.CMAKE_VERSION }}
         cd ${{ github.workspace }}
         sudo rm -r *
-        docker stop cmake.${{ env.CMAKE_VERSION }}
-        docker rm cmake.${{ env.CMAKE_VERSION }}
-        docker rmi cmake:${{ env.CMAKE_VERSION }}
         df -h
         ls -h
