@@ -5,6 +5,8 @@ SHELL ["/bin/bash", "-c"]
 ARG CMAKE_VERSION
 ARG JOBS
 
+ENV PATH="${PATH}:/usr/bin"
+
 RUN apt update && apt install -y \
     --no-install-recommends \
     gcc \
