@@ -20,7 +20,7 @@ on:
         description: Docker Image Name
         required: true
         type: string
-        default: cmake_compiler
+        default: cpp-default
       DOCKER_TAG:
         description: Docker Image Tag Name
         required: true
