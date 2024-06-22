@@ -108,7 +108,7 @@ jobs:
     - name: Build source repo using the cmake:${{ env.CMAKE_VERSION }} container
       id: compile_source_container
       run: |
-        docker run -d --name ${{ env.DOCKER_IMG_NAME }} cmake:${{ env.CMAKE_VERSION }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} --entrypoint /bin/bash
+        docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} --entrypoint /bin/bash cmake:${{ env.CMAKE_VERSION }}
         docker exec ${{ env.DOCKER_IMG_NAME }} /bin/bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.DOCKER_CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
 
     - name: Upload compiled build as an artifact
