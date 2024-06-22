@@ -90,19 +90,22 @@ jobs:
         path: ${{ env.REPO_PWD }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Generate the CMake docker image
+    - name: Generate cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} docker image
       run: |
-        docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" -t cmake.${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
+        docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" -t cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} -f cmake_gen/Dockerfile ./cmake_gen
         docker images
 
-    - name: Push cmake.${{ env.CMAKE_VERSION }} image to Artifactory
+    - name: Push cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} image to Container Repo
       run: |
         echo ""
 
-    - name: Compile Source Code with cmake.${{ env.CMAKE_VERSION }} container
+    - name: Compile Source Code in cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} container
       run: |
+        docker run --name cmake.${{ env.CMAKE_VERSION }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/root/${{ env.REPO_NAME_TIMESTAMP }} -d cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}
         docker ps
-        docker run -it --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/root/${{ env.REPO_NAME_TIMESTAMP }} cmake.${{ env.CMAKE_VERSION }}
+
+        docker stop cmake.${{ env.CMAKE_VERSION }}
+        docker rm cmake.${{ env.CMAKE_VERSION }}
 
     - name: Upload compiled build as an artifact
       uses: actions/upload-artifact@v4
@@ -115,5 +118,6 @@ jobs:
       run:  |
         cd ${{ github.workspace }}
         sudo rm -r *
+        docker rmi cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}
         df -h
         ls -h
