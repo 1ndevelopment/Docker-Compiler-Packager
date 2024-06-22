@@ -1,5 +1,7 @@
 FROM ubuntu:latest
 
+SHELL ["/bin/bash", "-c"]
+
 ARG CMAKE_VERSION
 ARG JOBS
 

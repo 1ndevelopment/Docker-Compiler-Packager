@@ -15,11 +15,6 @@ on:
         description: Source Repo Branch
         required: true
         default: main
-      MAKE_FLAGS:
-        description: Add additional make flags (Optional)
-        required: false
-        type: string
-
       DOCKER_OS_IMAGE:
         description: Docker Image Operating System
         required: true
@@ -34,9 +29,9 @@ on:
         description: Compiling Container Name
         required: true
         type: string
-        default: cpp-default
+        default: cmake-cpack-example
       DOCKER_TAG:
-        description: Docker Tag Name
+        description: Compiling Container Tag Name
         required: true
         type: string
         default: latest
@@ -44,6 +39,10 @@ on:
         description: Container CMake Version
         required: true
         default: 3.29.6
+      DOCKER_CMAKE_FLAGS:
+        description: Add additional cmake flags to container (Optional)
+        required: false
+        type: string
 
 jobs:
   build:
@@ -52,15 +51,15 @@ jobs:
     - name: Set dynamic environment variables
       run: |
         ## Set version control variables
-        echo "WORK_WEEK=$(date +"_%yww%W.%u_%H:%M:%S")" >> $GITHUB_ENV
-        echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
+        echo "WORK_WEEK=$(date "+%yww%W.%u_%H:%M:%S")" >> $GITHUB_ENV
+        echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
         echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
-        echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
+        echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
 
         ## Source Code Checkout
         ## example: 1ndev-ui/c-example
-        echo "CHECKOUT_REPO=$(echo ${{ env.REPO_URL }} | awk -F 'https://github.com/' '{gsub(/\/$/, "", $2); print $2}')" >> $GITHUB_ENV
+        echo "CHECKOUT_REPO=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
 
         ## Set docker container variables
         echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
@@ -105,7 +104,8 @@ jobs:
     - name: Build source repo using the cmake:${{ env.CMAKE_VERSION }} container
       id: compile_source_container
       run: |
-        docker run --name ${{ env.DOCKER_IMG_NAME }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && ls"
+        docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} --entrypoint /bin/bash
+        docker exec ${{ env.DOCKER_IMG_NAME }} /bin/bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && ls"
 
     - name: Upload compiled build as an artifact
       if: steps.compile_source_container.outcome == 'success'
