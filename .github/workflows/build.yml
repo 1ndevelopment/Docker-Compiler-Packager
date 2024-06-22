@@ -70,11 +70,11 @@ jobs:
     - name: Create timestamps & set the repo's working directory
       run: |
         ## Create a TIMESTAMP with the WORK_WEEK & COMMIT_HASH variables
-        echo "TIMESTAMP=$(echo _${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }})" >> $GITHUB_ENV
+        echo "TIMESTAMP=$(echo ${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }})" >> $GITHUB_ENV
 
         ## Attach the TIMESTAMP variable to the Source Code's REPO_NAME
         ## example: c-example-main_24ww25.5_13:56:38_59726b5
-        echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}${{ env.TIMESTAMP }})" >> $GITHUB_ENV
+        echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }})" >> $GITHUB_ENV
 
         ## Source Code Repo Directory
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
