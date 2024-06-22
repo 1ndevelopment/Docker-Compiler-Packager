@@ -95,7 +95,7 @@ jobs:
         docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" -t cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} -f cmake_gen/Dockerfile ./cmake_gen
         docker images
 
-    - name: Push cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} image to Container Repo
+    - name: Push cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }} image to Repo
       run: |
         echo ""
 
