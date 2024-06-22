@@ -39,7 +39,7 @@ on:
         description: Container CMake Version
         required: true
         default: 3.29.6
-      DOCKER_CMAKE_FLAGS:
+      CMAKE_FLAGS:
         description: Add additional cmake flags to container (Optional)
         required: false
         type: string
@@ -66,7 +66,7 @@ jobs:
         echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
         echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
         echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
-        echo "DOCKER_CMAKE_FLAGS=${{ github.event.inputs.DOCKER_CMAKE_FLAGS }}" >> $GITHUB_ENV
+        echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
 
     - name: Create TIMESTAMP
       run: |
@@ -109,7 +109,7 @@ jobs:
       id: compile_source_container
       run: |
         docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} --entrypoint /bin/bash cmake:${{ env.CMAKE_VERSION }}
-        docker exec ${{ env.DOCKER_IMG_NAME }} /bin/bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.DOCKER_CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
+        docker exec ${{ env.DOCKER_IMG_NAME }} /bin/bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
 
     - name: Upload compiled build as an artifact
       if: steps.compile_source_container.outcome == 'success'
