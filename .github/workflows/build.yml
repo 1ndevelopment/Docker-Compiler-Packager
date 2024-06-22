@@ -104,9 +104,6 @@ jobs:
         docker run --name cmake.${{ env.CMAKE_VERSION }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/root/${{ env.REPO_NAME_TIMESTAMP }} -d cmake:${{ env.CMAKE_VERSION }}
         docker ps
 
-        docker stop cmake:${{ env.CMAKE_VERSION }}
-        docker rm cmake:${{ env.CMAKE_VERSION }}
-
     - name: Upload compiled build as an artifact
       uses: actions/upload-artifact@v4
       with:
@@ -118,6 +115,8 @@ jobs:
       run:  |
         cd ${{ github.workspace }}
         sudo rm -r *
-        docker rmi cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}
+        docker stop cmake.${{ env.CMAKE_VERSION }}
+        docker rm cmake.${{ env.CMAKE_VERSION }}
+        docker rmi cmake:${{ env.CMAKE_VERSION }}
         df -h
         ls -h
