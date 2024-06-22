@@ -95,17 +95,17 @@ jobs:
       id: generate_cmake_docker_img
       run: |
         docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
-        docker images
 
-    - name: Compile Source Code using the cmake:${{ env.CMAKE_VERSION }} container
+    - name: Push cmake:${{ env.CMAKE_VERSION }} image to repo
+      if: steps.generate_cmake_docker_img.outcome == 'success'
+      run: |
+        docker images
+        docker ps
+
+    - name: Build source repo using the cmake:${{ env.CMAKE_VERSION }} container
       id: compile_source_container
       run: |
         docker run --name ${{ env.DOCKER_IMG_NAME }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && ls"
-        docker ps
-
-    - name: Push cmake:${{ env.CMAKE_VERSION }} image to Repo
-      run: |
-        echo ""
 
     - name: Upload compiled build as an artifact
       if: steps.compile_source_container.outcome == 'success'
