@@ -10,7 +10,7 @@ on:
       SOURCE_CODE_URL:
         description: Source Repo URL
         required: true
-        default: https://github.com/1ndev-ui/TWRP_CG65_device_tree/
+        default: https://github.com/retifrav/cmake-cpack-example
       SOURCE_CODE_BRANCH:
         description: Source Repo Branch
         required: true
@@ -45,38 +45,35 @@ on:
         required: true
         default: 3.29.6
 
+env:
+  ## Set version control variables
+  REPO_URL: ${{ github.event.inputs.SOURCE_CODE_URL }}
+  REPO_BRANCH: ${{ github.event.inputs.SOURCE_CODE_BRANCH }}
+
+  ## Set docker container variables
+  DOCKER_OS_IMAGE: ${{ github.event.inputs.DOCKER_OS_IMAGE }}
+  DOCKER_IMG_NAME: ${{ github.event.inputs.DOCKER_IMG_NAME }}
+  DOCKER_TAG: ${{ github.event.inputs.DOCKER_TAG }}
+  CMAKE_VERSION: ${{ github.event.inputs.DOCKER_CMAKE_VERSION }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Set environment variables
+    - name: Set dynamic environment variables
       run: |
         ## Set version control variables
         echo "WORK_WEEK=$(date +"_%yww%W.%u_%H:%M:%S")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_ENV
-        echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
-        echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
         echo "REPO_NAME=$(echo ${{ github.event.inputs.SOURCE_CODE_URL }} | awk -F'/' '{ print $5 }')" >> $GITHUB_ENV
-
         ## Source Code Checkout
         ## example: 1ndev-ui/c-example
         echo "CHECKOUT_REPO=$(echo ${{ env.REPO_URL }} | awk -F 'https://github.com/' '{gsub(/\/$/, "", $2); print $2}')" >> $GITHUB_ENV
-
-        ## Set docker container variables
-        echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
-        echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
-        echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
-        echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
-
-    - name: Create timestamps & set the repo's working directory
-      run: |
         ## Create a TIMESTAMP with the WORK_WEEK & COMMIT_HASH variables
         echo "TIMESTAMP=$(echo _${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }})" >> $GITHUB_ENV
-
         ## Attach the TIMESTAMP variable to the Source Code's REPO_NAME
         ## example: c-example-main_24ww25.5_13:56:38_59726b5
         echo "REPO_NAME_TIMESTAMP=$(echo ${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}${{ env.TIMESTAMP }})" >> $GITHUB_ENV
-
         ## Source Code Repo Directory
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
 
@@ -100,7 +97,7 @@ jobs:
     - name: Compile Source Code using the cmake:${{ env.CMAKE_VERSION }} container
       id: compile_source_container
       run: |
-        docker run --name ${{ env.DOCKER_IMG_NAME }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/root/${{ env.REPO_NAME_TIMESTAMP }} -d cmake:${{ env.CMAKE_VERSION }}
+        docker run --name ${{ env.DOCKER_IMG_NAME }} --entrypoint /bin/bash -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && ls"
         docker ps
 
 
@@ -109,6 +106,7 @@ jobs:
         echo ""
 
     - name: Upload compiled build as an artifact
+      if: steps.compile_source_container.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.REPO_NAME_TIMESTAMP }}
