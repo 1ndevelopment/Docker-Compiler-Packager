@@ -54,7 +54,7 @@ jobs:
       packages: write
 
     steps:
-      - name: Set dynamic variables
+      - name: Set SHA/hash variables
         run: |
           echo "Setting version control variables..."
           echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
@@ -91,8 +91,8 @@ jobs:
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
           echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}" --format "{{.ID}}")" >> $GITHUB_ENV
-          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
-          echo "DOCKER_SOURCE_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_${{ env.COMMIT_HASH }}:${{ env.WORK_WEEK }}")" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_cmake.${{ env.CMAKE_VERSION }}_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
           echo "DOCKER_COMPILED_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
@@ -118,8 +118,6 @@ jobs:
           echo "Committing ${{ env.DOCKER_SOURCE_IMG }} to ${{ env.DOCKER_SOURCE_COMMIT_IMG }}"
           docker container commit ${{ env.DOCKER_SOURCE_IMG }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }}
 
-          docker rmi ${{ env.DOCKER_SOURCE_IMG }}
-
           echo "Tagging ${{ env.DOCKER_SOURCE_COMMIT_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
           docker image tag ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
 
@@ -127,6 +125,7 @@ jobs:
           docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
 
           docker images
+
 
       - name: Compile source in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
@@ -150,8 +149,6 @@ jobs:
           echo "Committing ${{ env.DOCKER_ID }} to ${{ env.DOCKER_COMPILED_COMMIT_IMG }}"
           docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_COMPILED_COMMIT_IMG }}
 
-          docker stop ${{ env.DOCKER_ID }} && docker rm ${{ env.DOCKER_ID }}
-
           echo "Tagging ${{ env.DOCKER_COMPILED_COMMIT_IMG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_COMPILED_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
 
@@ -159,6 +156,7 @@ jobs:
           docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
 
           docker images
+
 
       - name: Upload packaged build as an artifact
         if: ${{ steps.commit_push_compiled.outcome == 'success' }}
@@ -170,6 +168,7 @@ jobs:
       - name: Cleanup
         if: ${{ always() }}
         run:  |
-          docker rmi ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
+          docker stop ${{ env.DOCKER_ID }} && docker rm ${{ env.DOCKER_ID }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
           docker rmi ${{ env.DOCKER_COMPILED_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
           cd ${{ github.workspace }} && sudo rm -r *
