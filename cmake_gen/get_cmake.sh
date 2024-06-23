@@ -57,14 +57,17 @@ compare() {
 
     if [ $comparison -eq 0 ] || [ $comparison -eq 1 ]; then
         echo "CMake version $installed_version is installed and meets the requirement (>= $required_version)."
+        exit 0
     else
         echo "CMake version $installed_version is installed but does not meet the requirement (>= $required_version)."
+        exit 1
     fi
 }
 
 # Check if CMake is installed
 if ! command -v cmake &> /dev/null; then
     echo "CMake is not installed."
+    echo "Building & installing cmake.$1 from source..."
     build_cmake $1 $2
     exit 0
 else
