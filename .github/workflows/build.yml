@@ -91,9 +91,9 @@ jobs:
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
           echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}" --format "{{.ID}}")" >> $GITHUB_ENV
-          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_cmake.${{ env.CMAKE_VERSION }}_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
-          echo "DOCKER_SOURCE_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
-          echo "DOCKER_COMPILED_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_source:${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_COMMIT_IMG=$(echo "${{ env.REPO_NAME_TIMESTAMP }}_cmake.${{ env.CMAKE_VERSION }}_source:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
+          echo "DOCKER_COMPILED_COMMIT_IMG=$(echo "${{ env.REPO_NAME_TIMESTAMP }}_cmake.${{ env.CMAKE_VERSION }}_compiled:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
