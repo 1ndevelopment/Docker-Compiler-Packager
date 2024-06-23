@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
+cmake_version="$1"
+jobs="$2"
+arch="$(echo "$(uname -s)-$(uname -m)")"
+
 # Build chosen cmake version from source
 build_cmake() {
-    cmake_version="$1"
-    jobs="$2"
-
     if [ -z "$cmake_version" ]; then
         cmake_version=$(curl -s 'https://cmake.org/files/LatestRelease/cmake-latest-files-v1.json' | jq -r '.version.string')
     fi
@@ -13,11 +14,25 @@ build_cmake() {
         jobs=$(nproc)
     fi
 
-    curl -OL https://github.com/Kitware/CMake/releases/download/v$cmake_version/cmake-$cmake_version.tar.gz
-    tar -xzf cmake-$cmake_version.tar.gz
-    cd cmake-$cmake_version
+    curl -OL https://github.com/Kitware/CMake/releases/download/v$cmake_version/cmake-$cmake_version-$arch.tar.gz
+    tar -xzf cmake-$cmake_version-$arch.tar.gz
+    cd cmake-$cmake_version-$arch
     ./bootstrap -- -DCMAKE_BUILD_TYPE:STRING=Release
     make -j$jobs && make install
+}
+
+install_cmake() {
+    if [ -z "$cmake_version" ]; then
+        cmake_version=$(curl -s 'https://cmake.org/files/LatestRelease/cmake-latest-files-v1.json' | jq -r '.version.string')
+    fi
+
+    if [ -z "$jobs" ]; then
+        jobs=$(nproc)
+    fi
+
+    curl -OL https://github.com/Kitware/CMake/releases/download/v$cmake_version/cmake-$cmake_version-$arch.sh
+    chmod +x cmake-$cmake_version-$arch.sh
+    ./cmake-$cmake_version-$arch.sh
 }
 
 compare() {
@@ -64,4 +79,4 @@ compare() {
     fi
 }
 
-command -v cmake &> /dev/null && { echo "Building & installing cmake.$CMAKE_VERSION from source..."; build_cmake $1 $2; } || { echo "CMake is not installed!"; echo "Installing from APT..."; apt install -y cmake; };
+command -v cmake &> /dev/null && { echo "Building & installing cmake.$cmake_version from source..."; build_cmake $cmake_version $jobs; } || { echo "CMake is not installed!"; echo "Installing cmake.$cmake_version from installer..."; install_cmake $cmake_version; };

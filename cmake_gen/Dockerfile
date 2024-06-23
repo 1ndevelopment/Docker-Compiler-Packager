@@ -27,9 +27,7 @@ WORKDIR /cmake
 
 COPY get_cmake.sh /usr/local/share/get_cmake.sh
 RUN chmod +x /usr/local/share/get_cmake.sh
-
-RUN source /usr/local/share/get_cmake.sh
-RUN command -v cmake &> /dev/null && { echo "Building & installing cmake.$CMAKE_VERSION from source..."; build_cmake $CMAKE_VERSION $JOBS; } || { echo "CMake is not installed!"; echo "Installing from APT..."; apt install -y cmake; };
+RUN /usr/local/share/get_cmake.sh $CMAKE_VERSION $JOBS
 
 WORKDIR /$REPO
 
