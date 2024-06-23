@@ -65,6 +65,10 @@ jobs:
           echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
           echo "REPO_CHECKOUT=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
 
+          echo "Setting CMake variables..."
+          echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
+          echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
+
           echo "Setting docker related variables..."
           echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
           echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
@@ -74,10 +78,6 @@ jobs:
           echo "DOCKER_SOURCE_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source-cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_COMMIT_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_${{ env.COMMIT_HASH }}:${{ env.WORK_WEEK }}" >> $GITHUB_ENV
           echo "DOCKER_COMPILED_COMMIT_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled_${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}:${{ env.DOCKER_TAG }}" >> $GITHUB_ENV
-
-          echo "Setting CMake variables..."
-          echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
-          echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
       - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
         run: |
           echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
