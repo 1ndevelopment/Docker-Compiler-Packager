@@ -11,6 +11,7 @@ ENV PATH="${PATH}:/usr/bin"
 
 RUN apt update && apt install -y \
     --no-install-recommends \
+    apt-utils \
     gcc \
     g++ \
     make \
