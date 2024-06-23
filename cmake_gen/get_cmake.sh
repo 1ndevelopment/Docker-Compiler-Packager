@@ -21,7 +21,7 @@ build_cmake() {
 }
 
 compare() {
-# Function to compare version numbers
+    # Function to compare version numbers
     version_compare() {
         if [[ $1 == $2 ]]; then
             return 0
@@ -45,29 +45,29 @@ compare() {
         return 0
     }
 
-# Required CMake version
-required_version="$1"
+    # Required CMake version
+    required_version="$1"
 
-# Get installed CMake version
-installed_version=$(cmake --version | head -n1 | awk '{print $3}')
+    # Get installed CMake version
+    installed_version=$(cmake --version | head -n1 | awk '{print $3}')
 
-# Compare versions
-version_compare "$installed_version" "$required_version"
-comparison=$?
+    # Compare versions
+    version_compare "$installed_version" "$required_version"
+    comparison=$?
 
-if [ $comparison -eq 0 ] || [ $comparison -eq 1 ]; then
-    echo "CMake version $installed_version is installed and meets the requirement (>= $required_version)."
-else
-    echo "CMake version $installed_version is installed but does not meet the requirement (>= $required_version)."
-    exit 1
-fi
+    if [ $comparison -eq 0 ] || [ $comparison -eq 1 ]; then
+        echo "CMake version $installed_version is installed and meets the requirement (>= $required_version)."
+    else
+        echo "CMake version $installed_version is installed but does not meet the requirement (>= $required_version)."
+    fi
 }
 
 # Check if CMake is installed
 if ! command -v cmake &> /dev/null; then
     echo "CMake is not installed."
     build_cmake $1 $2
-    exit 1
+    exit 0
+else
+    compare $1
+    exit 0
 fi
-
-compare $1

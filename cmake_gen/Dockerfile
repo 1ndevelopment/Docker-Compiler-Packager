@@ -16,7 +16,6 @@ RUN apt update && apt install -y \
     jq \
     curl \
     ca-certificates \
-    cmake \
     && apt upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
