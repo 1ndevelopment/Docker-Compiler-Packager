@@ -4,7 +4,7 @@ cmake_version="$1"
 jobs="$2"
 arch="$(echo "$(uname -s)-$(uname -m)")"
 
-# Build chosen cmake version from source
+## Build chosen CMake version from source .tar.gz
 build_cmake() {
     if [ -z "$cmake_version" ]; then
         cmake_version=$(curl -s 'https://cmake.org/files/LatestRelease/cmake-latest-files-v1.json' | jq -r '.version.string')
@@ -21,6 +21,7 @@ build_cmake() {
     make -j$jobs && make install
 }
 
+## Install chosen CMake version from installer .sh
 install_cmake() {
     if [ -z "$cmake_version" ]; then
         cmake_version=$(curl -s 'https://cmake.org/files/LatestRelease/cmake-latest-files-v1.json' | jq -r '.version.string')
@@ -35,6 +36,7 @@ install_cmake() {
     ./cmake-$cmake_version-$arch.sh --skip-license
 }
 
+## Compare Installed CMake to Required version
 compare() {
     # Function to compare version numbers
     version_compare() {
@@ -79,4 +81,4 @@ compare() {
     fi
 }
 
-command -v cmake &> /dev/null && { echo "Building & installing cmake.$cmake_version from source..."; build_cmake $cmake_version $jobs; } || { echo "CMake is not installed!"; echo "Installing cmake.$cmake_version from installer..."; install_cmake $cmake_version; };
+command -v cmake &> /dev/null && { compare $cmake_version; echo "Building & installing cmake.$cmake_version from source..."; build_cmake $cmake_version $jobs; } || { echo "CMake is not installed!"; echo "Installing cmake.$cmake_version from installer..."; install_cmake $cmake_version; };

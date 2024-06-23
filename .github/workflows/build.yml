@@ -92,11 +92,6 @@ jobs:
           path: ${{ env.REPO_PWD }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Start debug SSH session
-        uses: mxschmitt/action-tmate@v3.18
-        with:
-          detached: true
-
       - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
         id: build_cmake_image
         run: |
@@ -125,18 +120,15 @@ jobs:
           name: ${{ env.REPO_NAME_TIMESTAMP }}
           path: ${{ env.REPO_PWD }}/_packages/*
 
-      - name: Docker Scout
-        id: docker-scout
-        if: ${{ steps.compile_source_container.outcome == 'success' }}
-        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+      - name: Start debug SSH session
+        if: always()
+        id: debug_ssh_session
+        uses: mxschmitt/action-tmate@v3.18
         with:
-          command: cves
-          image: ${{ steps.meta.outputs.tags }}
-          only-severities: critical,high
-          exit-code: true
+          detached: true
 
       - name: Cleanup
-        if: always()
+        if: ${{ steps.debug_ssh_session.outcome == 'success' }}
         run:  |
           docker stop ${{ env.DOCKER_IMG_NAME }}
           docker rm ${{ env.DOCKER_IMG_NAME }}
