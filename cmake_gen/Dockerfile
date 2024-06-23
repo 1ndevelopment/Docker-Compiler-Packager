@@ -1,4 +1,6 @@
-FROM ubuntu:latest
+ARG DOCKER_OS_IMAGE
+
+FROM $DOCKER_OS_IMAGE
 
 SHELL ["/bin/bash", "-c"]
 

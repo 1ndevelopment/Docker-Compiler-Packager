@@ -18,13 +18,8 @@ on:
       DOCKER_OS_IMAGE:
         description: Docker Image Operating System
         required: true
-        type: choice
-        options:
-        - alpine
-        - fedora
-        - ubuntu
-        - arch
-        default: ubuntu
+        type: string
+        default: ubuntu:latest
       DOCKER_IMG_NAME:
         description: Compiling Container Name
         required: true
@@ -96,7 +91,7 @@ jobs:
       - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
         id: build_cmake_image
         run: |
-          docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
+          docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
       - name: Push cmake:${{ env.CMAKE_VERSION }} to image repo
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |

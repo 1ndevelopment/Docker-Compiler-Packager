@@ -6,10 +6,12 @@ arch="$(echo "$(uname -s)-$(uname -m)")"
 
 ## Build chosen CMake version from source .tar.gz
 build_cmake() {
+
+    ## Determine latest CMake version
     if [ -z "$cmake_version" ]; then
         cmake_version=$(curl -s 'https://cmake.org/files/LatestRelease/cmake-latest-files-v1.json' | jq -r '.version.string')
     fi
-
+    ## Assign processing units to compiler jobs
     if [ -z "$jobs" ]; then
         jobs=$(nproc)
     fi
@@ -38,6 +40,7 @@ install_cmake() {
 
 ## Compare Installed CMake to Required version
 compare() {
+
     # Function to compare version numbers
     version_compare() {
         if [[ $1 == $2 ]]; then
@@ -81,4 +84,5 @@ compare() {
     fi
 }
 
+## Determine CMake version
 command -v cmake &> /dev/null && { compare $cmake_version; echo "Building & installing cmake.$cmake_version from source..."; build_cmake $cmake_version $jobs; } || { echo "CMake is not installed!"; echo "Installing cmake.$cmake_version from installer..."; install_cmake $cmake_version; };
