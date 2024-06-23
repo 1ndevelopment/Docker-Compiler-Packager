@@ -30,11 +30,6 @@ on:
         required: true
         type: string
         default: latest
-      DOCKER_REPO_HOST:
-        description: Hostname or IP of Image Repo Host with Port #
-        required: false
-        type: string
-        default: 127.0.0.1:5000
       DOCKER_CMAKE_VERSION:
         description: Container CMake Version
         required: true
@@ -44,6 +39,11 @@ on:
         required: false
         type: string
         default: -DCMAKE_BUILD_TYPE=Release
+      DOCKER_REPO_HOST:
+        description: Hostname/IP & Port of Docker Repo to push too
+        required: false
+        type: string
+        default: 127.0.0.1:5000
 
 jobs:
   build:
