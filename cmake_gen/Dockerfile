@@ -10,15 +10,16 @@ ARG REPO_NAME_TIMESTAMP
 RUN apt update && apt install -y \
     --no-install-recommends \
     apt-utils \
+    ninja-build \
+    git \
+    file \
     gcc \
     g++ \
     make \
-    ninja-build \
     libssl-dev \
     jq \
     curl \
     ca-certificates \
-    git \
     && apt upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
