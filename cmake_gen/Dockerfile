@@ -23,7 +23,7 @@ RUN apt update && apt install -y \
 
 WORKDIR /cmake
 
-ENV PATH="$PATH:/usr/local/share"
+ENV PATH="$PATH:/cmake/bin"
 COPY get_cmake.sh /usr/local/share/get_cmake.sh
 
 RUN chmod +x /usr/local/share/get_cmake.sh
