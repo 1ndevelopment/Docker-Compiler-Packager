@@ -44,101 +44,109 @@ on:
         required: false
         type: string
 
+env:
+  SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
+
 jobs:
   build:
+
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-    - name: Set dynamic environment variables
-      run: |
-        ## Set version control variables
-        echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
-        echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
-        echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
-        echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
-        echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
+      - name: Set dynamic environment variables
+        run: |
+          ## Set version control variables
+          echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
+          echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
+          echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
+          echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
 
-        ## Source Code Checkout
-        ## example: 1ndev-ui/c-example
-        echo "CHECKOUT_REPO=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
+          ## Source Code Checkout
+          ## example: 1ndev-ui/c-example
+          echo "CHECKOUT_REPO=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
 
-        ## Set docker container variables
-        echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
-        echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
-        echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
-        echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
-        echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
-    - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
-      run: |
-        ## example: 24ww25.5_59726b5
-        echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
-    - name: Attach TIMESTAMP to REPO_NAME
-      run: |
-        ## example: c-example-main_24ww24.5_59726b5
-        echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-    - name: Set the working directory for the source repo
-      run: |
-        echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
+          ## Set docker container variables
+          echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
+          echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
+          echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
+          echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
+          echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
+      - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
+        run: |
+          ## example: 24ww25.5_59726b5
+          echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
+      - name: Attach TIMESTAMP to REPO_NAME
+        run: |
+          ## example: c-example-main_24ww24.5_59726b5
+          echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+      - name: Set the working directory for the source repo
+        run: |
+          echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
 
-    - name: Checkout ${{ github.repository }}
-      uses: actions/checkout@v4
-    - name: Checkout ${{ env.CHECKOUT_REPO }}
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ env.CHECKOUT_REPO }}
-        ref: ${{ env.REPO_BRANCH }}
-        path: ${{ env.REPO_PWD }}
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout ${{ github.repository }}
+        uses: actions/checkout@v4
+      - name: Checkout ${{ env.CHECKOUT_REPO }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CHECKOUT_REPO }}
+          ref: ${{ env.REPO_BRANCH }}
+          path: ${{ env.REPO_PWD }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Start debug SSH session
-      uses: mxschmitt/action-tmate@v3.18
-      with:
-        detached: true
+      - name: Start debug SSH session
+        uses: mxschmitt/action-tmate@v3.18
+        with:
+          detached: true
 
-    - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
-      id: build_cmake_image
-      run: |
-        docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
-    - name: Push cmake:${{ env.CMAKE_VERSION }} to image repo
-      if: ${{ steps.build_cmake_image.outcome == 'success' }}
-      run: |
-        docker images
-        docker ps
+      - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
+        id: build_cmake_image
+        run: |
+          docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
+      - name: Push cmake:${{ env.CMAKE_VERSION }} to image repo
+        if: ${{ steps.build_cmake_image.outcome == 'success' }}
+        run: |
+          docker images
+          docker ps
 
-    - name: Compile source in ${{ env.DOCKER_IMG_NAME }} container
-      id: compile_source_container
-      run: |
-        docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} tail -f /dev/null
+      - name: Compile source in ${{ env.DOCKER_IMG_NAME }} container
+        id: compile_source_container
+        run: |
+          docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} tail -f /dev/null
 
-        if [ "$(docker inspect -f '{{.State.Running}}' ${{ env.DOCKER_IMG_NAME }})" != "true" ]; then
-          echo "Container is not running. Starting container..."
-          docker start ${{ env.DOCKER_IMG_NAME }}
-        fi
+          if [ "$(docker inspect -f '{{.State.Running}}' ${{ env.DOCKER_IMG_NAME }})" != "true" ]; then
+            echo "Container is not running. Starting container..."
+            docker start ${{ env.DOCKER_IMG_NAME }}
+          fi
 
-        docker exec ${{ env.DOCKER_IMG_NAME }} "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
-    - name: Upload compiled build as an artifact
-      if: ${{ steps.compile_source_container.outcome == 'success' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.REPO_NAME_TIMESTAMP }}
-        path: ${{ env.REPO_PWD }}/_packages/*
+          docker exec ${{ env.DOCKER_IMG_NAME }} "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
+      - name: Upload compiled build as an artifact
+        if: ${{ steps.compile_source_container.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.REPO_NAME_TIMESTAMP }}
+          path: ${{ env.REPO_PWD }}/_packages/*
 
-    - name: Docker Scout
-      id: docker-scout
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: docker/scout-action@latest
-      with:
-        command: cves
-        image: ${{ steps.meta.outputs.tags }}
-        only-severities: critical,high
-        exit-code: true
+      - name: Docker Scout
+        id: docker-scout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+        with:
+          command: cves
+          image: ${{ steps.meta.outputs.tags }}
+          only-severities: critical,high
+          exit-code: true
 
-    - name: Cleanup
-      if: always()
-      run:  |
-        docker stop ${{ env.DOCKER_IMG_NAME }}
-        docker rm ${{ env.DOCKER_IMG_NAME }}
-        docker rmi cmake:${{ env.CMAKE_VERSION }}
-        cd ${{ github.workspace }}
-        sudo rm -r *
-        df -h
-        ls -h
+      - name: Cleanup
+        if: always()
+        run:  |
+          docker stop ${{ env.DOCKER_IMG_NAME }}
+          docker rm ${{ env.DOCKER_IMG_NAME }}
+          docker rmi cmake:${{ env.CMAKE_VERSION }}
+          cd ${{ github.workspace }}
+          sudo rm -r *
+          df -h
+          ls -h
