@@ -32,7 +32,7 @@ install_cmake() {
 
     curl -OL https://github.com/Kitware/CMake/releases/download/v$cmake_version/cmake-$cmake_version-$arch.sh
     chmod +x cmake-$cmake_version-$arch.sh
-    ./cmake-$cmake_version-$arch.sh
+    ./cmake-$cmake_version-$arch.sh --skip-license
 }
 
 compare() {
