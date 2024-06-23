@@ -64,12 +64,4 @@ compare() {
     fi
 }
 
-# Check if CMake is installed
-if ! command -v cmake &> /dev/null; then
-    echo "CMake is not installed!"
-    exit 0
-else
-    echo "Building & installing cmake.$1 from source..."
-    build_cmake $1 $2
-    exit 0
-fi
+command -v cmake &> /dev/null && { echo "Building & installing cmake.$CMAKE_VERSION from source..."; build_cmake $1 $2; } || { echo "CMake is not installed!"; echo "Installing from APT..."; apt install -y cmake; };
