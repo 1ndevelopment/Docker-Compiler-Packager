@@ -67,8 +67,6 @@ compare() {
 # Check if CMake is installed
 if ! command -v cmake &> /dev/null; then
     echo "CMake is not installed!"
-    echo "Installing from APT..."
-    apt install -y cmake
     exit 0
 else
     echo "Building & installing cmake.$1 from source..."
