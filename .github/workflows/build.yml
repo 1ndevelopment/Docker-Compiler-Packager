@@ -54,16 +54,30 @@ jobs:
       packages: write
 
     steps:
-      - name: Set version control variables
+      - name: Set dynamic variables
         run: |
           echo "Setting version control variables..."
           echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
           echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
           echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
+      - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
+        run: |
+          echo "TIMESTAMP=${{ env.COMMIT_HASH }}_${{ env.WORK_WEEK }}" >> $GITHUB_ENV
+          echo "example: 59726b5_24ww25.5"
+      - name: Set Source Repo version control variables
+        run: |
+          echo "Setting version control variables..."
           echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
           echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
           echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
           echo "REPO_CHECKOUT=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
+      - name: Attach TIMESTAMP to REPO_NAME
+        run: |
+          echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+          echo "example: c-example-main_24ww24.5_59726b5"
+      - name: Set the working directory for ${{ env.REPO_CHECKOUT }}
+        run: |
+          echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
       - name: Set CMake variables
         run: |
           echo "Setting CMake variables..."
@@ -77,21 +91,9 @@ jobs:
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
           echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}" --format "{{.ID}}")" >> $GITHUB_ENV
-          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source-cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_${{ env.COMMIT_HASH }}:${{ env.WORK_WEEK }}")" >> $GITHUB_ENV
-          echo "DOCKER_COMPILED_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled_${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
-      - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
-        run: |
-          echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
-          echo "example: 24ww25.5_59726b5"
-      - name: Attach TIMESTAMP to REPO_NAME
-        run: |
-          echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-          echo "example: c-example-main_24ww24.5_59726b5"
-      - name: Set the working directory for ${{ env.REPO_CHECKOUT }}
-        run: |
-          echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
-
+          echo "DOCKER_COMPILED_COMMIT_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled_${{ env.TIMESTAMP }}:${{ env.DOCKER_TAG }}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
