@@ -112,7 +112,7 @@ jobs:
             docker start ${{ env.DOCKER_IMG_NAME }}
           fi
 
-          docker exec ${{ env.DOCKER_IMG_NAME }} "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
+          docker exec ${{ env.DOCKER_IMG_NAME }} bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.CMAKE_FLAGS }} -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cpack -G DEB"
       - name: Upload compiled build as an artifact
         if: ${{ steps.compile_source_container.outcome == 'success' }}
         uses: actions/upload-artifact@v4
