@@ -51,7 +51,7 @@ jobs:
     - name: Set dynamic environment variables
       run: |
         ## Set version control variables
-        echo "WORK_WEEK=$(date "+%yww%W.%u_%H:%M:%S")" >> $GITHUB_ENV
+        echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
         echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
         echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
         echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
@@ -68,18 +68,16 @@ jobs:
         echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
         echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
 
-    - name: Create TIMESTAMP
+    - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
       run: |
-        ## Create a TIMESTAMP with the WORK_WEEK & COMMIT_HASH variables
+        ## example: 24ww25.5_59726b5
         echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
     - name: Attach TIMESTAMP to REPO_NAME
       run: |
-        ## Attach the TIMESTAMP variable to the Source Code's REPO_NAME
-        ## example: c-example-main_24ww25.5_13:56:38_59726b5
+        ## example: c-example-main_24ww25.5_59726b5
         echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-    - name: Set the repo's working directory
+    - name: Set the source codes repo working directory
       run: |
-        ## Source Code Repo Directory
         echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
 
 
