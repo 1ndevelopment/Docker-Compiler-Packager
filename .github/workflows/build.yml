@@ -129,7 +129,7 @@ jobs:
         continue-on-error: true
 
       - name: Cleanup
-        if: ${{ always() && steps.debug_ssh_session.outcome == 'success' }}
+        if: ${{ steps.compile_source_container.outcome == 'success' }}
         run:  |
           docker stop ${{ env.DOCKER_IMG_NAME }}
           docker rm ${{ env.DOCKER_IMG_NAME }}
