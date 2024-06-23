@@ -16,6 +16,7 @@ build_cmake() {
         jobs=$(nproc)
     fi
 
+    ## Grab specified version, build & install
     curl -OL https://github.com/Kitware/CMake/releases/download/v$cmake_version/cmake-$cmake_version-$arch.tar.gz
     tar -xzf cmake-$cmake_version-$arch.tar.gz
     cd cmake-$cmake_version-$arch
