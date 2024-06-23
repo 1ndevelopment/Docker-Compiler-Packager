@@ -4,6 +4,7 @@ SHELL ["/bin/bash", "-c"]
 
 ARG CMAKE_VERSION
 ARG JOBS
+ARG REPO
 
 ENV PATH="${PATH}:/usr/bin"
 
@@ -24,3 +25,5 @@ WORKDIR /cmake
 COPY get_cmake.sh /usr/local/share/get_cmake.sh
 RUN chmod +x /usr/local/share/get_cmake.sh
 RUN /usr/local/share/get_cmake.sh $CMAKE_VERSION $JOBS
+
+WORKDIR /$REPO
