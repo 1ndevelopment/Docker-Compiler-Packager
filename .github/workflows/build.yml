@@ -35,7 +35,7 @@ on:
         required: true
         default: 3.29.6
       CMAKE_FLAGS:
-        description: Additional make flags to compiler (Optional)
+        description: Additional make flags for compiler (Optional)
         required: false
         type: string
         default: -DCMAKE_BUILD_TYPE=Release
