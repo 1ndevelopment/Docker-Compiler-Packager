@@ -4,7 +4,8 @@ SHELL ["/bin/bash", "-c"]
 
 ARG CMAKE_VERSION
 ARG JOBS
-ARG REPO
+ARG REPO_URL
+ARG REPO_NAME_TIMESTAMP
 
 ENV PATH="${PATH}:/usr/bin"
 
@@ -17,6 +18,7 @@ RUN apt update && apt install -y \
     jq \
     curl \
     ca-certificates \
+    git \
     && apt upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
@@ -27,3 +29,6 @@ RUN chmod +x /usr/local/share/get_cmake.sh
 RUN /usr/local/share/get_cmake.sh $CMAKE_VERSION $JOBS
 
 WORKDIR /$REPO
+
+RUN git clone $REPO_URL /$REPO_NAME_TIMESTAMP
+

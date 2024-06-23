@@ -44,9 +44,6 @@ on:
         required: false
         type: string
 
-env:
-  SHA: ${{ github.event.pull_request.head.sha || github.event.after || github.sha }}
-
 jobs:
   build:
 
@@ -61,18 +58,16 @@ jobs:
           ## Set version control variables
           echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
           echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
+          echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
           echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
           echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
           echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
-
-          ## Source Code Checkout
-          ## example: 1ndev-ui/c-example
-          echo "CHECKOUT_REPO=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
-
+          echo "REPO_CHECKOUT=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
           ## Set docker container variables
           echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
           echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
+          ## Set CMake variables
           echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
           echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
       - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
@@ -83,16 +78,16 @@ jobs:
         run: |
           ## example: c-example-main_24ww24.5_59726b5
           echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-      - name: Set the working directory for the source repo
+      - name: Set the working directory for ${{ env.REPO_CHECKOUT }}
         run: |
           echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
-      - name: Checkout ${{ env.CHECKOUT_REPO }}
+      - name: Checkout ${{ env.REPO_CHECKOUT }}
         uses: actions/checkout@v4
         with:
-          repository: ${{ env.CHECKOUT_REPO }}
+          repository: ${{ env.REPO_CHECKOUT }}
           ref: ${{ env.REPO_BRANCH }}
           path: ${{ env.REPO_PWD }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -105,17 +100,17 @@ jobs:
       - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
         id: build_cmake_image
         run: |
-          docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
+          docker build --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
       - name: Push cmake:${{ env.CMAKE_VERSION }} to image repo
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |
           docker images
-          docker ps
 
       - name: Compile source in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
         run: |
           docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} tail -f /dev/null
+          docker ps
 
           if [ "$(docker inspect -f '{{.State.Running}}' ${{ env.DOCKER_IMG_NAME }})" != "true" ]; then
             echo "Container is not running. Starting container..."
@@ -132,7 +127,7 @@ jobs:
 
       - name: Docker Scout
         id: docker-scout
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ steps.compile_source_container.outcome == 'success' }}
         uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
         with:
           command: cves
