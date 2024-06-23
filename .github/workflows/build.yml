@@ -45,7 +45,7 @@ on:
         type: string
 
 env:
-  SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
+  SHA: ${{ github.event.pull_request.head.sha || github.event.after || github.sha }}
 
 jobs:
   build:
