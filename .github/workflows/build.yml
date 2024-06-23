@@ -121,7 +121,7 @@ jobs:
           path: ${{ env.REPO_PWD }}/_packages/*
 
       - name: Start debug SSH session
-        if: always()
+        if: ${{ !cancelled() }}
         id: debug_ssh_session
         uses: mxschmitt/action-tmate@v3.18
         with:
@@ -129,7 +129,7 @@ jobs:
         continue-on-error: true
 
       - name: Cleanup
-        if: ${{ steps.debug_ssh_session.outcome == 'success' }}
+        if: ${{ always() && steps.debug_ssh_session.outcome == 'success' }}
         run:  |
           docker stop ${{ env.DOCKER_IMG_NAME }}
           docker rm ${{ env.DOCKER_IMG_NAME }}

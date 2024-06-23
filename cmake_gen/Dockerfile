@@ -7,7 +7,7 @@ ARG JOBS
 ARG REPO_URL
 ARG REPO_NAME_TIMESTAMP
 
-ENV PATH="${PATH}:/usr/local/share"
+ENV PATH="$PATH:/usr/local/share"
 
 RUN apt update && apt install -y \
     --no-install-recommends \
