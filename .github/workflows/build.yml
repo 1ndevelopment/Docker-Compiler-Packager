@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Set dynamic environment variables
         run: |
-          ## Set version control variables
+          echo "Setting version control variables..."
           echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
           echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
           echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
@@ -64,23 +64,29 @@ jobs:
           echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
           echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
           echo "REPO_CHECKOUT=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
-          ## Set docker related variables
+
+          echo "Setting docker related variables..."
           echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
           echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.IMAGE_REPO_HOST }" >> $GITHUB_ENV
           echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}" --format "{{.ID}}")" >> $GITHUB_ENV
-          ## Set CMake variables
+          echo "DOCKER_SOURCE_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source-cmake.${{ env.CMAKE_VERSION }}:${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_COMMIT_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-source_${{ env.COMMIT_HASH }}:${{ env.WORK_WEEK }}" >> $GITHUB_ENV
+          echo "DOCKER_COMPILED_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled:${{ env.DOCKER_TAG }}" >> $GITHUB_ENV
+          echo "DOCKER_COMPILED_COMMIT_IMG=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-compiled_${{ env.COMMIT_HASH }}:${{ env.WORK_WEEK }}" >> $GITHUB_ENV
+
+          echo "Setting CMake variables..."
           echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
           echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
       - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
         run: |
-          ## example: 24ww25.5_59726b5
           echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
+          echo "example: 24ww25.5_59726b5"
       - name: Attach TIMESTAMP to REPO_NAME
         run: |
-          ## example: c-example-main_24ww24.5_59726b5
           echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+          echo "example: c-example-main_24ww24.5_59726b5"
       - name: Set the working directory for ${{ env.REPO_CHECKOUT }}
         run: |
           echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
@@ -98,14 +104,23 @@ jobs:
       - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
         id: build_cmake_image
         run: |
-          docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t cmake:${{ env.CMAKE_VERSION }} -f cmake_gen/Dockerfile ./cmake_gen
+          docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t ${{ env.DOCKER_SOURCE_IMG }} -f cmake_gen/Dockerfile ./cmake_gen
       - name: Push cmake:${{ env.CMAKE_VERSION }} to ${{ env.DOCKER_REPO_HOST }}
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |
           docker ps
-          docker container commit cmake:${{ env.CMAKE_VERSION }} cmake.${{ env.CMAKE_VERSION }}}:${{ COMMIT_HASH }}
-          docker image tag cmake.${{ env.CMAKE_VERSION }}:${{ COMMIT_HASH }} ${{ env.DOCKER_REPO_HOST }}/${{ github.actor }}/cmake.${{ env.CMAKE_VERSION }}:${{ COMMIT_HASH }}
-          docker image push ${{ env.DOCKER_REPO_HOST }}/${{ github.actor }}/cmake.${{ env.CMAKE_VERSION }}}:${{ COMMIT_HASH }}
+
+          echo "Committing ${{ env.DOCKER_SOURCE_IMG }} to ${{ env.DOCKER_SOURCE_COMMIT_IMG }}"
+          docker container commit ${{ env.DOCKER_SOURCE_IMG }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }}
+
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}
+
+          echo "Tagging ${{ env.DOCKER_SOURCE_COMMIT_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
+          docker image tag ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
+
+          echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}"
+          docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
+
           docker images
 
       - name: Compile source in ${{ env.DOCKER_IMG_NAME }} container
@@ -114,7 +129,7 @@ jobs:
           echo "Determining Compiling Container for ${{ env.REPO_CHECKOUT }}..."
           if [ "$(docker inspect -f '{{.State.Running}}' ${{ env.DOCKER_IMG_NAME }})" != "true" ]; then
             echo "${{ env.DOCKER_IMG_NAME }} Container is not running! Starting..."
-            docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} cmake:${{ env.CMAKE_VERSION }} tail -f /dev/null
+            docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }} tail -f /dev/null
           else
             echo "${{ env.DOCKER_IMG_NAME }} Container is running. Continuing..."
           fi
@@ -126,9 +141,18 @@ jobs:
         if: ${{ steps.compile_source_container.outcome == 'success' }}
         run: |
           docker ps
-          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}
-          docker image tag ${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ github.actor }}/${{ env.DOCKER_IMG_NAME }}:${{ COMMIT_HASH }}
-          docker image push ${{ env.DOCKER_REPO_HOST }}/${{ github.actor }}/${{ env.DOCKER_IMG_NAME }}:${{ COMMIT_HASH }}
+
+          echo "Committing ${{ env.DOCKER_ID }} to ${{ env.DOCKER_COMPILED_COMMIT_IMG }}"
+          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_COMPILED_COMMIT_IMG }}
+
+          docker stop ${{ env.DOCKER_ID }} && docker rm ${{ env.DOCKER_ID }}
+
+          echo "Tagging ${{ env.DOCKER_COMPILED_COMMIT_IMG }} for ${{ env.DOCKER_REPO_HOST }}"
+          docker image tag ${{ env.DOCKER_COMPILED_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
+
+          echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}"
+          docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
+
           docker images
 
       - name: Upload packaged build as an artifact
@@ -141,7 +165,6 @@ jobs:
       - name: Cleanup
         if: ${{ always() }}
         run:  |
-          docker stop cmake:${{ env.CMAKE_VERSION }} ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_ID }}
-          docker rm cmake:${{ env.CMAKE_VERSION }} ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_ID }}
-          docker rmi cmake:${{ env.CMAKE_VERSION }} cmake.${{ env.CMAKE_VERSION }}}:${{ COMMIT_HASH }} ${{ env.DOCKER_REPO_HOST }}/${{ github.actor }}/cmake.${{ env.CMAKE_VERSION }}:${{ COMMIT_HASH }} ${{ env.DOCKER_ID }} ${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ github.actor }}/${{ env.DOCKER_IMG_NAME }}:${{ COMMIT_HASH }}
+          docker rmi ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
+          docker rmi ${{ env.DOCKER_COMPILED_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
           cd ${{ github.workspace }} && sudo rm -r *
