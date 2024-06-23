@@ -13,7 +13,7 @@ RUN apt update && apt install -y \
     gcc \
     g++ \
     make \
-    ninja \
+    ninja-build \
     libssl-dev \
     jq \
     curl \
