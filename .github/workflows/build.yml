@@ -62,8 +62,8 @@ jobs:
           echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
       - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
         run: |
-          echo "TIMESTAMP=${{ env.COMMIT_HASH }}_${{ env.WORK_WEEK }}" >> $GITHUB_ENV
-          echo "example: 59726b5_24ww25.5"
+          echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
+          echo "example: 24ww25.5_59726b5"
       - name: Set Source Repo version control variables
         run: |
           echo "Setting version control variables..."
@@ -122,7 +122,7 @@ jobs:
           docker images
 
 
-      - name: Compile ${{ env.REPO_NAME_TIMESTAMP }} in ${{ env.DOCKER_IMG_NAME }} container
+      - name: Compile ${{ env.REPO_CHECKOUT }} in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
         run: |
           echo "Determining Compiling Container for ${{ env.REPO_CHECKOUT }}..."
@@ -135,17 +135,18 @@ jobs:
 
           echo "Compiling ${{ env.REPO_CHECKOUT }} in /${{ env.REPO_NAME_TIMESTAMP }}/build/"
           docker exec ${{ env.DOCKER_IMG_NAME }} bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && mkdir build && cd build && cmake -G Ninja ${{ env.CMAKE_FLAGS }} .. && cmake --build . && cpack -G DEB"
-      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} image to ${{ env.DOCKER_REPO_HOST }}
-        id: commit_push_compiled
-        if: ${{ steps.compile_source_container.outcome == 'success' }}
-        run: |
-          docker ps
 
           echo "Committing ${{ env.DOCKER_IMG_NAME }} to ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}"
           docker container commit ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
 
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+
+      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} image to ${{ env.DOCKER_REPO_HOST }}
+        id: commit_push_compiled
+        if: ${{ steps.compile_source_container.outcome == 'success' }}
+        run: |
+          docker ps
 
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
