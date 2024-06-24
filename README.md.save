@@ -28,6 +28,8 @@ A CI/CD Pipeline that demonstrates compiling &amp; packaging
 - Change Image Name from _source to _compiled
 
 5] Push
+
+
 - Push _compiled image to $DOCKER_REPO_HOST
 - Upload packaged build as an artifact
 

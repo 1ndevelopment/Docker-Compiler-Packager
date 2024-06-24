@@ -107,19 +107,6 @@ jobs:
         id: build_cmake_image
         run: |
           docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} -f cmake_gen/Dockerfile ./cmake_gen
-      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_REPO_HOST }}
-        if: ${{ steps.build_cmake_image.outcome == 'success' }}
-        run: |
-          docker ps
-
-          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
-          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
-
-          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
-          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
-
-          docker images
-
 
       - name: Compile ${{ env.REPO_CHECKOUT }} in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
@@ -139,7 +126,21 @@ jobs:
           docker container commit ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
 
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
+
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+
+      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_REPO_HOST }}
+        if: ${{ steps.build_cmake_image.outcome == 'success' }}
+        run: |
+          docker ps
+
+          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
+          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+
+          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
+          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+
+          docker images
 
       - name: Push ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} image to ${{ env.DOCKER_REPO_HOST }}
         id: commit_push_compiled
