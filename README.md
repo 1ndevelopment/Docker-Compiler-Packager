@@ -2,8 +2,12 @@
 A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen URL or given Schedule
 
 - Compiles code for chosen OS
-- Pushes _source & _compiled images to repo
 - Saves packaged code as artifacts
+- Pushes _source & _compiled images to repo:
+
+c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest
+
+c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest
 
 ## Workflow Steps:
 1] Configure environment variables
@@ -18,20 +22,20 @@ A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen
 - Checkout 1ndevelopment/Actions-Packager-Example
 - Checkout $REPO_CHECKOUT
 
-3] Build image &amp; compile source within container
-- Build c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest
+3] Build image
+- Build $DOCKER_SOURCE_IMG_source:$DOCKER_TAG
+- Push $DOCKER_SOURCE_IMG_source:$DOCKER_TAG to $DOCKER_REPO_HOST
 
 4] Compile chosen source within container
 - Determine Compiling Container for $REPO_CHECKOUT
 - Compile $REPO_CHECKOUT in /$REPO_NAME_TIMESTAMP directory
 
 - Commit changes from container to image
-- Change Image Name from _source to _compiled
+- Change Image Name from $DOCKER_SOURCE_IMG_source to $DOCKER_SOURCE_IMG_compiled
 
-5] Push &amp; Cleanup
-- Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest to $DOCKER_REPO_HOST
-
-- Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest to $DOCKER_REPO_HOST
+- Push $DOCKER_SOURCE_IMG_compiled:$DOCKER_TAG to $DOCKER_REPO_HOST
 - Upload packaged build as an artifact
+
+5] Cleanup
 
 - Cleanup workspace, remove images
