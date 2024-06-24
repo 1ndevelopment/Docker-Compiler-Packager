@@ -91,6 +91,7 @@ jobs:
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
+          echo "CONTAINER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_SOURCE_IMG }}_source" --format "{{.ID}}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
@@ -140,9 +141,8 @@ jobs:
         run: |
           docker ps
 
-          echo "Committing ${{ env.CONTAINER_ID }} to ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}"
-          echo "CONTAINER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_SOURCE_IMG }}_source" --format "{{.ID}}")" >> $GITHUB_ENV
-          docker container commit ${{ env.CONTAINER_ID }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          echo "Committing ${{ env.DOCKER_IMG_NAME }} to ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}"
+          docker container commit ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
 
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
