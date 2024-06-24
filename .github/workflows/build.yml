@@ -130,7 +130,7 @@ jobs:
           echo "Determining Compiling Container for ${{ env.REPO_CHECKOUT }}..."
           if [ "$(docker inspect -f '{{.State.Running}}' ${{ env.DOCKER_IMG_NAME }})" != "true" ]; then
             echo "${{ env.DOCKER_IMG_NAME }} Container is not running! Starting..."
-            docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }} tail -f /dev/null
+            docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} ${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }} tail -f /dev/null
           else
             echo "${{ env.DOCKER_IMG_NAME }} Container is running. Continuing..."
           fi
