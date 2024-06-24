@@ -15,7 +15,7 @@ A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen
 - Set CMake Flags
 
 2] Checkout
-- Checkout 1ndevelopment/Actions-Packager-Example
+- Checkout 1ndevelopment/Docker-Compiler-Packager
 - Checkout $REPO_CHECKOUT
 
 3] Build image
