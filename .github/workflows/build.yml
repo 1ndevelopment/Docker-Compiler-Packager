@@ -142,13 +142,13 @@ jobs:
         run: |
           docker ps
 
-          echo "Committing ${{ env.DOCKER_ID }} to ${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }}"
-          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
+          echo "Committing ${{ env.DOCKER_ID }} to ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}"
+          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}
 
-          echo "Tagging ${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
+          echo "Tagging ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
 
-          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}"
+          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}"
           ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
 
           docker images
