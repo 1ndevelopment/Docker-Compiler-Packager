@@ -5,10 +5,6 @@ A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen
 - Saves packaged code as artifacts
 - Pushes _source & _compiled images to repo:
 
-c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest
-
-c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest
-
 ## Workflow Steps:
 1] Configure environment variables
 - Set SHA/hash variables
@@ -37,3 +33,18 @@ c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest
 5] Cleanup
 
 - Cleanup workspace, remove images
+
+# Docker Image naming convention:
+
+$REPO_NAME-$REPO_BRANCH_cmake.$CMAKE_VERSION_$COMMIT_HASH_$STATE:$DOCKER_TAG
+
+Example:
+c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest
+c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest
+
+# Docker Container naming convention:
+
+$REPO_NAME-$REPO_BRANCH:$DOCKER_TAG
+
+Example:
+c-example-main:latest
