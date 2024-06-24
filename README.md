@@ -1,5 +1,5 @@
 # Docker-Compiler-Packager
-A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen URL or given Schedule
+A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen URL or given schedule.
 
 - Compiles code for chosen OS
 - Saves packaged code as artifacts
