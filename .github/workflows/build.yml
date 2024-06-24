@@ -10,40 +10,40 @@ on:
       SOURCE_CODE_URL:
         description: Source Repo URL
         required: true
-        default: https://github.com/retifrav/cmake-cpack-example
+        default: "https://github.com/retifrav/cmake-cpack-example"
       SOURCE_CODE_BRANCH:
         description: Source Repo Branch
         required: true
-        default: master
+        default: "master"
       DOCKER_OS_IMAGE:
         description: Docker Image Operating System
         required: true
         type: string
-        default: ubuntu:latest
+        default: "ubuntu:latest"
       DOCKER_IMG_NAME:
         description: Compiling Container Name
         required: true
         type: string
-        default: cmake-cpack-example
+        default: "cmake-cpack-example"
       DOCKER_TAG:
         description: Compiling Container Tag Name
         required: true
         type: string
-        default: latest
+        default: "latest"
       DOCKER_CMAKE_VERSION:
         description: Container CMake Version
         required: true
-        default: 3.29.6
+        default: "3.29.6"
       CMAKE_FLAGS:
         description: Additional make flags for compiler (Optional)
         required: false
         type: string
-        default: -DCMAKE_BUILD_TYPE=Release
+        default: "-DCMAKE_BUILD_TYPE=Release"
       DOCKER_REPO_HOST:
         description: Hostname/IP & Port of Docker Repo to push too
         required: false
         type: string
-        default: 127.0.0.1:5000
+        default: "127.0.0.1:5000"
 
 jobs:
   build:
