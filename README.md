@@ -29,10 +29,8 @@ c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest
 4] Compile chosen source within container
 - Determine Compiling Container for $REPO_CHECKOUT
 - Compile $REPO_CHECKOUT in /$REPO_NAME_TIMESTAMP directory
-
 - Commit changes from container to image
 - Change Image Name from $DOCKER_SOURCE_IMG_source to $DOCKER_SOURCE_IMG_compiled
-
 - Push $DOCKER_SOURCE_IMG_compiled:$DOCKER_TAG to $DOCKER_REPO_HOST
 - Upload packaged build as an artifact
 
