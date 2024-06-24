@@ -15,20 +15,19 @@ A CI/CD Pipeline that demonstrates compiling &amp; packaging
 - Checkout $REPO_CHECKOUT
 
 3] Build image &amp; compile source within container
-- Build $REPO_NAME-$REPO_BRANCH_$WORK_WEEK_$CMAKE_VERSION_$COMMIT_SHA_source:$DOCKER_TAG
-~ uses docker build against ./cmake_gen/Dockerfile
-
-- Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest to $DOCKER_REPO_HOST
+- Build c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest
 
 4] Compile chosen source within container
-- Compile $REPO_CHECKOUT in $DOCKER_IMG_NAME container
 - Determine Compiling Container for $REPO_CHECKOUT
 - Compile $REPO_CHECKOUT in /$REPO_NAME_TIMESTAMP directory
+
 - Commit changes from container to image
 - Change Image Name from _source to _compiled
 
 5] Push
-- Push _compiled image to $DOCKER_REPO_HOST
+- Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest to $DOCKER_REPO_HOST
+
+- Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest to $DOCKER_REPO_HOST
 - Upload packaged build as an artifact
 
 - Cleanup workspace, remove images
