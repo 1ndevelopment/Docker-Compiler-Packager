@@ -92,7 +92,7 @@ jobs:
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_source")" >> $GITHUB_ENV
           echo "DOCKER_COMPILED_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_compiled")" >> $GITHUB_ENV
-          echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_SOURCE_IMG }}" --format "{{.ID}}")" >> $GITHUB_ENV
+          echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_source" --format "{{.ID}}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
@@ -143,7 +143,7 @@ jobs:
           docker ps
 
           echo "Committing ${{ env.DOCKER_ID }} to ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}"
-          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_IMG_NAME }}:${{ env.DOCKER_TAG }}
+          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
 
           echo "Tagging ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
