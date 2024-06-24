@@ -141,8 +141,11 @@ jobs:
         run: |
           docker ps
 
-          echo "Committing ${{ env.CONTAINER_ID }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
-          docker container commit ${{ env.CONTAINER_ID }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+          echo "Committing ${{ env.CONTAINER_ID }} to ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}"
+          docker container commit ${{ env.CONTAINER_ID }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+
+          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
+          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
 
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
