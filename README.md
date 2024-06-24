@@ -3,16 +3,18 @@ A CI/CD Pipeline that demonstrates compiling &amp; packaging
 
 ## Workflow Steps:
 
--- Set SHA/hash variables
+1] Set SHA/hash variables
 - Create a $TIMESTAMP with $WORK_WEEK & $COMMIT_HASH variables
 - Set Source Repo version control variables
 - Attach $TIMESTAMP to $REPO_NAME
 - Set the working directory for $REPO_CHECKOUT
 - Set CMake Flags
 
+2] Checkout
 - Checkout 1ndevelopment/Actions-Packager-Example
 - Checkout $REPO_CHECKOUT
 
+3] Build Image with Source & Push
 - Build <<REPO.NAME>>-<<REPO.BRANCH>>_<<WORK.WEEK>>_<<CMAKE.VERSION>>_<<COMMIT.SHA>>_source:<<DOCKER.TAG>>
 * uses docker build against ./cmake_gen/Dockerfile
 
