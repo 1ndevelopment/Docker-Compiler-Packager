@@ -127,7 +127,7 @@ jobs:
             echo ''
             echo "${{ env.DOCKER_IMG_NAME }} container is running. Continuing..."
           fi
-          echo ''
+
           echo "Compiling ${{ env.REPO_CHECKOUT }} in /${{ env.REPO_NAME_TIMESTAMP }}/build/"
 
           docker exec ${{ env.DOCKER_IMG_NAME }} bash -c "cd /${{ env.REPO_NAME_TIMESTAMP }} && \
@@ -140,7 +140,6 @@ jobs:
           echo "Committing ${{ env.DOCKER_IMG_NAME }} to ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}"
           echo ''
           docker container commit ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
-
           echo ''
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
           echo ''
