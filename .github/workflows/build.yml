@@ -160,13 +160,13 @@ jobs:
         if: ${{ steps.commit_push_compiled.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.REPO_NAME_TIMESTAMP }}
+          name: ${{ env.REPO_NAME_TIMESTAMP }}_compiled
           path: ${{ env.REPO_PWD }}/_packages/*
 
       - name: Cleanup
         if: ${{ always() }}
         run:  |
-          docker stop ${{ env.CONTAINER_ID }} && docker rm ${{ env.CONTAINER_ID }}
-          docker rmi ${{ env.DOCKER_SOURCE_IMG }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
-          docker rmi ${{ env.DOCKER_COMPILED_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
+          docker stop ${{ env.DOCKER_IMG_NAME }} && docker rm ${{ env.DOCKER_IMG_NAME }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
           cd ${{ github.workspace }} && sudo rm -r *
