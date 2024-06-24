@@ -3,7 +3,7 @@ A CI/CD Pipeline that demonstrates compiling &amp; packaging
 
 ## Workflow Steps:
 
-- Set SHA/hash variables
+-- Set SHA/hash variables
 - Create a $TIMESTAMP with $WORK_WEEK & $COMMIT_HASH variables
 - Set Source Repo version control variables
 - Attach $TIMESTAMP to $REPO_NAME
