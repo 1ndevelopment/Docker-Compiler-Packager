@@ -128,7 +128,7 @@ jobs:
           echo "Determining Compiling Container for ${{ env.REPO_CHECKOUT }}..."
           if [ "$(docker inspect -f '{{.State.Running}}' ${{ env.DOCKER_IMG_NAME }})" != "true" ]; then
             echo "${{ env.DOCKER_IMG_NAME }} Container is not running! Starting..."
-            docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} ${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }} tail -f /dev/null
+            docker run -d --name ${{ env.DOCKER_IMG_NAME }} -v ${{ env.REPO_PWD }}:/${{ env.REPO_NAME_TIMESTAMP }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} tail -f /dev/null
           else
             echo "${{ env.DOCKER_IMG_NAME }} Container is running. Continuing..."
           fi
@@ -141,14 +141,14 @@ jobs:
         run: |
           docker ps
 
-          echo "Committing ${{ env.CONTAINER_ID }} to ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}"
-          docker container commit ${{ env.CONTAINER_ID }} ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
+          echo "Committing ${{ env.CONTAINER_ID }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
+          docker container commit ${{ env.CONTAINER_ID }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
 
-          echo "Tagging ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
-          docker image tag ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
+          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
+          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
 
-          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}"
-          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
+          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
+          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
 
           docker images
 
