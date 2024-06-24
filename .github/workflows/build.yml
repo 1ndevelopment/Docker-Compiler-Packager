@@ -122,7 +122,7 @@ jobs:
           docker images
 
 
-      - name: Compile ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} in ${{ env.DOCKER_IMG_NAME }} container
+      - name: Compile ${{ env.REPO_NAME_TIMESTAMP }} in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
         run: |
           echo "Determining Compiling Container for ${{ env.REPO_CHECKOUT }}..."
