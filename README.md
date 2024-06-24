@@ -17,7 +17,7 @@ A CI/CD Pipeline that demonstrates compiling &amp; packaging
 
 3] Build Image with Source & Push
 - Build <<REPO.NAME>>-<<REPO.BRANCH>>_<<WORK.WEEK>>_<<CMAKE.VERSION>>_<<COMMIT.SHA>>_source:<<DOCKER.TAG>>
->> uses docker build against ./cmake_gen/Dockerfile
+<< uses docker build against ./cmake_gen/Dockerfile
 - Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest to $DOCKER_REPO_HOST
 
 - Compile $REPO_CHECKOUT in $DOCKER_IMG_NAME container
