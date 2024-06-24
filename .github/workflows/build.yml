@@ -91,7 +91,6 @@ jobs:
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
-          echo "CONTAINER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_SOURCE_IMG }}_source" --format "{{.ID}}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
