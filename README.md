@@ -1,5 +1,8 @@
 # Docker-Compiler-Packager
-A CI/CD Pipeline that demonstrates compiling &amp; packaging
+A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen URL or given Schedule
+
+- Packages code for chosen OS
+- Commits
 
 ## Workflow Steps:
 1] Configure environment variables
@@ -24,7 +27,7 @@ A CI/CD Pipeline that demonstrates compiling &amp; packaging
 - Commit changes from container to image
 - Change Image Name from _source to _compiled
 
-5] Push
+5] Push &amp; Cleanup
 - Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest to $DOCKER_REPO_HOST
 
 - Push c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest to $DOCKER_REPO_HOST
