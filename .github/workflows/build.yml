@@ -118,8 +118,8 @@ jobs:
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}
 
-          echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
-          docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}
+          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
+          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}
 
           docker images
 
@@ -149,8 +149,8 @@ jobs:
           echo "Tagging ${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }}
 
-          echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}"
-          docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }}
+          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}"
+          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}:${{ env.DOCKER_TAG }}
 
           docker images
 
