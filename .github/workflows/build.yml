@@ -90,9 +90,8 @@ jobs:
           echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
-          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_source")" >> $GITHUB_ENV
-          echo "DOCKER_COMPILED_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_compiled")" >> $GITHUB_ENV
-          echo "DOCKER_ID=$(docker container ls --filter "ancestor=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_source" --format "{{.ID}}")" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
+          echo "CONTAINER_ID=$(docker container ls --filter "ancestor=${{ env.DOCKER_SOURCE_IMG }}" --format "{{.ID}}")" >> $GITHUB_ENV
 
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
@@ -108,17 +107,17 @@ jobs:
       - name: Build cmake:${{ env.CMAKE_VERSION }} docker image
         id: build_cmake_image
         run: |
-          docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t ${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }} -f cmake_gen/Dockerfile ./cmake_gen
+          docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} -f cmake_gen/Dockerfile ./cmake_gen
       - name: Push cmake:${{ env.CMAKE_VERSION }} to ${{ env.DOCKER_REPO_HOST }}
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |
           docker ps
 
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
-          docker image tag ${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}
+          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
 
           ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
-          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}
+          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
 
           docker images
 
@@ -142,8 +141,8 @@ jobs:
         run: |
           docker ps
 
-          echo "Committing ${{ env.DOCKER_ID }} to ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}"
-          docker container commit ${{ env.DOCKER_ID }} ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
+          echo "Committing ${{ env.CONTAINER_ID }} to ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}"
+          docker container commit ${{ env.CONTAINER_ID }} ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
 
           echo "Tagging ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
           docker image tag ${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_IMG }}:${{ env.DOCKER_TAG }}
@@ -164,7 +163,7 @@ jobs:
       - name: Cleanup
         if: ${{ always() }}
         run:  |
-          docker stop ${{ env.DOCKER_ID }} && docker rm ${{ env.DOCKER_ID }}
+          docker stop ${{ env.CONTAINER_ID }} && docker rm ${{ env.CONTAINER_ID }}
           docker rmi ${{ env.DOCKER_SOURCE_IMG }} ${{ env.DOCKER_SOURCE_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_COMMIT_IMG }}
           docker rmi ${{ env.DOCKER_COMPILED_COMMIT_IMG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_COMPILED_COMMIT_IMG }}
           cd ${{ github.workspace }} && sudo rm -r *
