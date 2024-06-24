@@ -1,8 +1,9 @@
 # Docker-Compiler-Packager
 A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen URL or given Schedule
 
-- Packages code for chosen OS
-- Commits
+- Compiles code for chosen OS
+- Pushes _source & _compiled images to repo
+- Saves packaged code as artifacts
 
 ## Workflow Steps:
 1] Configure environment variables
