@@ -74,7 +74,7 @@ jobs:
       - name: Attach TIMESTAMP to REPO_NAME
         run: |
           echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
-          echo "example: c-example-main_24ww24.5_59726b5"
+          echo "example: cpack-example-main_24ww24.5_59726b5"
       - name: Set the working directory for ${{ env.REPO_CHECKOUT }}
         run: |
           echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
