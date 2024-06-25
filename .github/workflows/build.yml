@@ -10,7 +10,7 @@ on:
       SOURCE_CODE_URL:
         description: Source Repo URL
         required: true
-        default: https://github.com/retifrav/cmake-cpack-example
+        default: https://github.com/1ndev-ui/cpack-example
       SOURCE_CODE_BRANCH:
         description: Source Repo Branch
         required: true
