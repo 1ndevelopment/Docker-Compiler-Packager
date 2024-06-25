@@ -116,7 +116,7 @@ jobs:
       - name: Push ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_NAMESPACE }}
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |
-          docker login -u ${{ secrets.ADMIN_USERNAME }} -p ${{ secrets.ADMIN_PASSWORD }} ${{ env.DOCKER_NAMESPACE }}
+          ## docker login -u ${{ secrets.ADMIN_USERNAME }} --password-stdin -p ${{ secrets.ADMIN_PASSWORD }} ${{ env.DOCKER_NAMESPACE }}
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_NAMESPACE }} Docker Repo"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
           ## echo "Pushing ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
@@ -145,7 +145,7 @@ jobs:
         id: commit_push_compiled
         if: ${{ steps.compile_source_container.outcome == 'success' }}
         run: |
-          docker login -u ${{ secrets.ADMIN_USERNAME }} -p ${{ secrets.ADMIN_PASSWORD }} ${{ env.DOCKER_NAMESPACE }}
+          ## docker login -u ${{ secrets.ADMIN_USERNAME }} --password-stdin -p ${{ secrets.ADMIN_PASSWORD }} ${{ env.DOCKER_NAMESPACE }}
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_NAMESPACE }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
           ## echo "Pushing ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
