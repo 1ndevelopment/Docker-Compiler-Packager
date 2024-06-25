@@ -1,11 +1,13 @@
 name: Build, Compile & Package
 
 on:
+  schedule:
+    - cron: '0 12 * * 3'
+
   workflow_dispatch:
     secrets:
       GITHUB_TOKEN:
         required: true
-
     inputs:
       SOURCE_CODE_URL:
         description: Source Repo URL
@@ -47,12 +49,10 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Set SHA/hash variables
         run: |
@@ -91,6 +91,8 @@ jobs:
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
           echo "DOCKER_NAMESPACE=${{ github.event.inputs.DOCKER_NAMESPACE }}" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
+
+
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
       - name: Checkout ${{ env.REPO_CHECKOUT }}
@@ -147,6 +149,7 @@ jobs:
         with:
           name: ${{ env.REPO_NAME_TIMESTAMP }}_compiled
           path: ${{ env.REPO_PWD }}/_packages/*
+
 
       - name: Cleanup
         if: ${{ always() }}
