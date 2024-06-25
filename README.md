@@ -39,8 +39,7 @@ A CI/CD Pipeline that demonstrates Docker Containers compiling c/c++ from chosen
 $REPO_NAME-$REPO_BRANCH_cmake.$CMAKE_VERSION_$COMMIT_HASH_$STATE:$DOCKER_TAG
 
 Example:\
-c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest\
-c-example-main_24ww24.4_cmake.2.29.6_cg7305a_compiled:latest
+c-example-main_24ww24.4_cmake.2.29.6_cg7305a_source:latest
 
 ## Container naming convention:
 
