@@ -38,7 +38,7 @@ on:
         type: string
         default: latest
       DOCKER_NAMESPACE:
-        description: Docker namespace to push too
+        description: Docker Namespace to push _source & _compiled too
         required: false
         type: string
         default: 1ndev.com:6565
