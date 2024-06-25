@@ -1,4 +1,4 @@
-name: Build, Compile & Package
+name: Build, Compile, Package & Push
 
 on:
   schedule:
