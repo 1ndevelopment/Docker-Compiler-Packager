@@ -15,7 +15,3 @@ services:
         cmake --build . &&
         cpack -G DEB
         "
-
-volumes:
-  ${REPO_NAME_TIMESTAMP}:
-  build:
