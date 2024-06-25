@@ -1,0 +1,98 @@
+name: Pull Image & Compose
+
+on:
+  schedule:
+    - cron: '0 12 * * 3'
+
+  workflow_dispatch:
+    secrets:
+      ADMIN_USERNAME:
+        required: true
+      ADMIN_PASSWORD:
+        required: true
+      GITHUB_TOKEN:
+        required: true
+
+    inputs:
+      DOCKER_IMG_NAME:
+        description: Compiling Container Name
+        required: true
+        type: string
+        default: cpack-example
+      DOCKER_TAG:
+        description: Compiling Container Tag Name
+        required: true
+        type: string
+        default: latest
+      DOCKER_NAMESPACE:
+        description: Docker Namespace to pull from
+        required: false
+        type: string
+        default: 1ndev.com:6565
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set SHA/hash variables
+        run: |
+          echo "Setting version control variables..."
+          echo "WORK_WEEK=$(date "+%yww%W.%u")" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(str="${{ github.sha }}"; echo "${str:0:7}")" >> $GITHUB_ENV
+          echo "SHA=${{ github.sha }}" >> $GITHUB_ENV
+      - name: Create a TIMESTAMP with WORK_WEEK & COMMIT_HASH variables
+        run: |
+          echo "TIMESTAMP=${{ env.WORK_WEEK }}_${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
+          echo "example: 24ww25.5_59726b5"
+      - name: Set Source Repo version control variables
+        run: |
+          echo "Setting version control variables..."
+          echo "REPO_URL=${{ github.event.inputs.SOURCE_CODE_URL }}" >> $GITHUB_ENV
+          echo "REPO_NAME=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; repo=${url##*/}; echo "$repo")" >> $GITHUB_ENV
+          echo "REPO_BRANCH=${{ github.event.inputs.SOURCE_CODE_BRANCH }}" >> $GITHUB_ENV
+          echo "REPO_CHECKOUT=$(url="${{ github.event.inputs.SOURCE_CODE_URL }}"; url=${url#https://github.com/}; echo "${url%/}")" >> $GITHUB_ENV
+      - name: Attach TIMESTAMP to REPO_NAME
+        run: |
+          echo "REPO_NAME_TIMESTAMP=${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.TIMESTAMP }}" >> $GITHUB_ENV
+          echo "example: cpack-example-main_24ww24.5_59726b5"
+      - name: Set the working directory for ${{ env.REPO_CHECKOUT }}
+        run: |
+          echo "REPO_PWD=${{ github.workspace }}/${{ env.REPO_NAME }}" >> $GITHUB_ENV
+      - name: Set CMake variables
+        run: |
+          echo "Setting CMake variables..."
+          echo "CMAKE_VERSION=${{ github.event.inputs.DOCKER_CMAKE_VERSION }}" >> $GITHUB_ENV
+          echo "CMAKE_FLAGS=${{ github.event.inputs.CMAKE_FLAGS }}" >> $GITHUB_ENV
+      - name: Set docker related variables
+        run: |
+          echo "Setting docker related variables..."
+          echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
+          echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
+          echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
+          echo "DOCKER_NAMESPACE=${{ github.event.inputs.DOCKER_NAMESPACE }}" >> $GITHUB_ENV
+          echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
+
+      - name: Checkout ${{ github.repository }}
+        uses: actions/checkout@v4
+      - name: Checkout ${{ env.REPO_CHECKOUT }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.REPO_CHECKOUT }}
+          ref: ${{ env.REPO_BRANCH }}
+          path: ${{ env.REPO_PWD }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull & Compose ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+        run: |
+          docker-compose up
+        working-directory: ${{ github.workspace }}/cmake_gen
+
+      - name: Cleanup
+        if: ${{ always() }}
+        run:  |
+          docker stop ${{ env.DOCKER_IMG_NAME }} && docker rm ${{ env.DOCKER_IMG_NAME }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+          cd ${{ github.workspace }} && sudo rm -r *

@@ -33,7 +33,7 @@ COPY get_cmake.sh /usr/local/share/get_cmake.sh
 RUN chmod +x /usr/local/share/get_cmake.sh
 RUN /usr/local/share/get_cmake.sh $CMAKE_VERSION $JOBS
 
-WORKDIR /$REPO
+WORKDIR /$REPO_NAME_TIMESTAMP
 
 RUN git clone $REPO_URL /$REPO_NAME_TIMESTAMP
 
