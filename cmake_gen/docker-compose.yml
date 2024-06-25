@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  my_service:
-    image: ${DOCKER_NAMESPACE}/${DOCKER_IMG_NAME}_source:${DOCKER_TAG}
+  compile_service:
+    image: ${DOCKER_NAMESPACE}/${DOCKER_SOURCE_IMG}_source:${DOCKER_TAG}
     volumes:
       - ${REPO_PWD}:/${REPO_NAME_TIMESTAMP}
       - ${REPO_PWD}/build:/${REPO_NAME_TIMESTAMP}/build
