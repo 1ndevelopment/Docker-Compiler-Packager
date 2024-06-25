@@ -6,8 +6,13 @@ on:
 
   workflow_dispatch:
     secrets:
-      GITHUB_TOKEN:
+      ADMIN_USERNAME:
         required: true
+      ADMIN_PASSWORD:
+        required: true
+      ADMIN_GITHUB_TOKEN:
+        required: true
+
     inputs:
       SOURCE_CODE_URL:
         description: Source Repo URL
@@ -45,7 +50,7 @@ on:
         description: Docker namespace to push too
         required: false
         type: string
-        default: 1ndevelopment
+        default: 1ndev.com:6565
 
 jobs:
   build:
@@ -101,7 +106,7 @@ jobs:
           repository: ${{ env.REPO_CHECKOUT }}
           ref: ${{ env.REPO_BRANCH }}
           path: ${{ env.REPO_PWD }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ADMIN_GITHUB_TOKEN }}
 
 
       - name: Build ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} docker image
@@ -111,11 +116,12 @@ jobs:
       - name: Push ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_NAMESPACE }}
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |
-          docker ps
+          docker login -u ${{ secrets.ADMIN_USERNAME }} -p ${{ secrets.ADMIN_PASSWORD }} ${{ env.DOCKER_NAMESPACE }}
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_NAMESPACE }} Docker Repo"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
           ## echo "Pushing ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
           ## docker image push ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          docker ps
           docker images
       - name: Compile ${{ env.REPO_CHECKOUT }} in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
@@ -137,11 +143,12 @@ jobs:
         id: commit_push_compiled
         if: ${{ steps.compile_source_container.outcome == 'success' }}
         run: |
-          docker ps
+          docker login -u ${{ secrets.ADMIN_USERNAME }} -p ${{ secrets.ADMIN_PASSWORD }} ${{ env.DOCKER_NAMESPACE }}
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_NAMESPACE }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
           ## echo "Pushing ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
           ## docker image push ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+          docker ps
           docker images
       - name: Upload packaged build as an artifact
         if: ${{ steps.commit_push_compiled.outcome == 'success' }}

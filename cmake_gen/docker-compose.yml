@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  my_service:
+    image: ${DOCKER_NAMESPACE}/${DOCKER_IMG_NAME}:${DOCKER_TAG}
+    volumes:
+      - ${REPO_PWD}:/${REPO_NAME_TIMESTAMP}
+      - ${REPO_PWD}/build:/${REPO_NAME_TIMESTAMP}/build
+    working_dir: /${REPO_NAME_TIMESTAMP}
+    command: >
+      bash -c "
+        mkdir -p build &&
+        cd build &&
+        cmake -G Ninja ${CMAKE_FLAGS} .. &&
+        cmake --build . &&
+        cpack -G DEB
+        "
+
+volumes:
+  ${REPO_NAME_TIMESTAMP}:
+  build:
