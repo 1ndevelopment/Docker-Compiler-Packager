@@ -39,11 +39,11 @@ on:
         required: false
         type: string
         default: -DCMAKE_BUILD_TYPE=Release
-      DOCKER_REPO_HOST:
-        description: Hostname/IP & Port of Docker Repo to push too
+      DOCKER_NAMESPACE:
+        description: Docker namespace to push too
         required: false
         type: string
-        default: 127.0.0.1:5000
+        default: 1ndevelopment
 
 jobs:
   build:
@@ -89,7 +89,7 @@ jobs:
           echo "DOCKER_OS_IMAGE=${{ github.event.inputs.DOCKER_OS_IMAGE }}" >> $GITHUB_ENV
           echo "DOCKER_IMG_NAME=${{ github.event.inputs.DOCKER_IMG_NAME }}" >> $GITHUB_ENV
           echo "DOCKER_TAG=${{ github.event.inputs.DOCKER_TAG }}" >> $GITHUB_ENV
-          echo "DOCKER_REPO_HOST=${{ github.event.inputs.DOCKER_REPO_HOST }}" >> $GITHUB_ENV
+          echo "DOCKER_NAMESPACE=${{ github.event.inputs.DOCKER_NAMESPACE }}" >> $GITHUB_ENV
           echo "DOCKER_SOURCE_IMG=$(echo "${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}_${{ env.WORK_WEEK }}_cmake.${{ env.CMAKE_VERSION }}_${{ env.COMMIT_HASH }}")" >> $GITHUB_ENV
       - name: Checkout ${{ github.repository }}
         uses: actions/checkout@v4
@@ -106,14 +106,14 @@ jobs:
         id: build_cmake_image
         run: |
           docker build --build-arg DOCKER_OS_IMAGE="${{ env.DOCKER_OS_IMAGE }}" --build-arg CMAKE_VERSION="${{ env.CMAKE_VERSION }}" --build-arg JOBS="8" --build-arg REPO_URL="${{ env.REPO_URL }}" --build-arg REPO_NAME_TIMESTAMP="${{ env.REPO_NAME_TIMESTAMP }}" -t ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} -f cmake_gen/Dockerfile ./cmake_gen
-      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_REPO_HOST }}
+      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_NAMESPACE }}
         if: ${{ steps.build_cmake_image.outcome == 'success' }}
         run: |
           docker ps
-          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_REPO_HOST }} Docker Repo"
-          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
-          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
-          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }} for ${{ env.DOCKER_NAMESPACE }} Docker Repo"
+          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          ## echo "Pushing ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}:${{ env.DOCKER_TAG }}"
+          ## docker image push ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
           docker images
       - name: Compile ${{ env.REPO_CHECKOUT }} in ${{ env.DOCKER_IMG_NAME }} container
         id: compile_source_container
@@ -131,15 +131,15 @@ jobs:
           docker container commit ${{ env.DOCKER_IMG_NAME }} ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
           echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} to ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
           docker image tag ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
-      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} image to ${{ env.DOCKER_REPO_HOST }}
+      - name: Push ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} image to ${{ env.DOCKER_NAMESPACE }}
         id: commit_push_compiled
         if: ${{ steps.compile_source_container.outcome == 'success' }}
         run: |
           docker ps
-          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_REPO_HOST }}"
-          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
-          ## echo "Pushing ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
-          ## docker image push ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+          echo "Tagging ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} for ${{ env.DOCKER_NAMESPACE }}"
+          docker image tag ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+          ## echo "Pushing ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}"
+          ## docker image push ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
           docker images
       - name: Upload packaged build as an artifact
         if: ${{ steps.commit_push_compiled.outcome == 'success' }}
@@ -152,6 +152,6 @@ jobs:
         if: ${{ always() }}
         run:  |
           docker stop ${{ env.DOCKER_IMG_NAME }} && docker rm ${{ env.DOCKER_IMG_NAME }}
-          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
-          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_REPO_HOST }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_source:${{ env.DOCKER_TAG }}
+          docker rmi ${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }} ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_SOURCE_IMG }}_compiled:${{ env.DOCKER_TAG }}
           cd ${{ github.workspace }} && sudo rm -r *
