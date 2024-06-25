@@ -24,7 +24,7 @@ on:
         description: Compiling Container Name
         required: true
         type: string
-        default: cmake-cpack-example
+        default: cpack-example
       DOCKER_TAG:
         description: Compiling Container Tag Name
         required: true
