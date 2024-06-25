@@ -14,7 +14,7 @@ on:
       SOURCE_CODE_BRANCH:
         description: Source Repo Branch
         required: true
-        default: master
+        default: main
       DOCKER_OS_IMAGE:
         description: Docker Image Operating System
         required: true
